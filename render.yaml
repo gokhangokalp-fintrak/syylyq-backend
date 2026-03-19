@@ -1,0 +1,33 @@
+# VITA SuperApp — Render Blueprint
+# Bu dosya Render Dashboard'dan "New Blueprint" ile deploy edilir
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: vita-backend
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: QR_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vita-db
+          property: connectionString
+
+databases:
+  - name: vita-db
+    region: frankfurt
+    plan: free
+    databaseName: vita
+    user: vita_user

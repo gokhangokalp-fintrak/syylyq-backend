@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kahve Dünyası - İşletme Paneli | VITA SuperApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0F172A;
+            --primary-light: #1E293B;
+            --accent: #FCD34D;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --syylyq: #7C3AED;
+            --border: #E2E8F0;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --bg-light: #F8FAFC;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            direction: ltr;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 240px;
+            background-color: var(--primary);
+            color: white;
+            padding: 24px 16px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .merchant-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .merchant-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+        }
+
+        .approval-badge {
+            display: inline-block;
+            background-color: var(--success);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-items {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-link.active {
+            background-color: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        /* MAIN CONTENT */
+        .main-wrapper {
+            margin-left: 240px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            background-color: white;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .topbar-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background-color: var(--danger);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--syylyq), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* MAIN CONTENT AREA */
+        .content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* SECTIONS */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        /* CARDS & GRID */
+        .card {
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-highlight {
+            background: linear-gradient(135deg, var(--accent), #FBD068);
+            border: none;
+            color: var(--primary);
+        }
+
+        .card-highlight-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .highlight-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .highlight-label {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .highlight-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-change {
+            font-size: 12px;
+            color: var(--success);
+            margin-top: 4px;
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* TABLE STYLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        thead {
+            background-color: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background-color: var(--bg-light);
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn-secondary {
+            background-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #CBD5E1;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px 8px 0 0;
+            padding: 0 20px;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* QR BOX */
+        .qr-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 200px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            background-color: var(--bg-light);
+            margin: 20px auto;
+        }
+
+        .qr-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .qr-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* REVENUE HIGHLIGHT */
+        .revenue-highlight {
+            background: linear-gradient(135deg, var(--syylyq), #9333EA);
+            color: white;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            border: none;
+        }
+
+        .revenue-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .revenue-value {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        /* CHART PLACEHOLDER */
+        .chart-placeholder {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* SCANNER AREA */
+        .scanner-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .scanner-box {
+            width: 300px;
+            height: 300px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            background-color: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .scanner-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .scanner-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .manual-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .manual-input-group input {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .manual-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+
+        @media (max-width: 1400px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="merchant-name">Kahve Dünyası</div>
+                <div class="merchant-subtitle">İşletme Paneli</div>
+                <span class="approval-badge">Onaylı ✓</span>
+            </div>
+
+            <!-- ANA SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">Ana</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" data-section="dashboard">
+                            <span class="nav-icon">📊</span>
+                            <span>Pano</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#performance" data-section="performance">
+                            <span class="nav-icon">📈</span>
+                            <span>Performans</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- SATIŞ SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">Satış</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#cards" data-section="cards">
+                            <span class="nav-icon">🎁</span>
+                            <span>Hediye Kartları</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#token-payments" data-section="token-payments">
+                            <span class="nav-icon">🪙</span>
+                            <span>Token Ödemeleri</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#qr-scanner" data-section="qr-scanner">
+                            <span class="nav-icon">📱</span>
+                            <span>QR Tarama</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- FİNANS SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">Finans</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#ledger" data-section="ledger">
+                            <span class="nav-icon">💰</span>
+                            <span>Cari Hesap</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#batch" data-section="batch">
+                            <span class="nav-icon">📦</span>
+                            <span>Toplu Ödemeler</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#bank" data-section="bank">
+                            <span class="nav-icon">🏦</span>
+                            <span>Banka Bilgileri</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- NEARBYME SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">NearbyMe</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#nearby-profile" data-section="nearby-profile">
+                            <span class="nav-icon">📍</span>
+                            <span>İşletme Profili</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#campaigns" data-section="campaigns">
+                            <span class="nav-icon">🎯</span>
+                            <span>Kampanyalar</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- GÖZLEMLE SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">Gözlemle</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reviews" data-section="reviews">
+                            <span class="nav-icon">🔍</span>
+                            <span>Denetim Sonuçları</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#task-requests" data-section="task-requests">
+                            <span class="nav-icon">📋</span>
+                            <span>Görev Talepleri</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- SİSTEM SECTION -->
+            <div class="nav-section">
+                <div class="nav-section-title">Sistem</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#staff" data-section="staff">
+                            <span class="nav-icon">👥</span>
+                            <span>Çalışanlar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#settings" data-section="settings">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Ayarlar</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="main-wrapper">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <h1 class="topbar-title">Pano</h1>
+                <div class="topbar-actions">
+                    <div class="notification-icon">
+                        🔔
+                        <div class="notification-badge">3</div>
+                    </div>
+                    <div class="user-profile">
+                        <span class="user-name">Mehmet Y. (Yönetici)</span>
+                        <div class="user-avatar">MY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <main class="content">
+                <!-- SECTION 1: PANO (DASHBOARD) -->
+                <div id="section-dashboard" class="section active">
+                    <!-- Row 1: Today Highlight -->
+                    <div class="card card-highlight">
+                        <div class="card-highlight-text">
+                            <div>
+                                <div style="text-align: left;">
+                                    <h3 style="font-size: 16px; margin-bottom: 16px;">Bugünkü Özet</h3>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                                    <div class="highlight-stat">
+                                        <span class="highlight-label">İşlem Sayısı</span>
+                                        <span class="highlight-value">12</span>
+                                    </div>
+                                    <div class="highlight-stat">
+                                        <span class="highlight-label">Toplam Gelir</span>
+                                        <span class="highlight-value">8,450₺</span>
+                                    </div>
+                                    <div class="highlight-stat">
+                                        <span class="highlight-label">QR Token Ödeme</span>
+                                        <span class="highlight-value">3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Stat Cards (6 columns) -->
+                    <div class="grid-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Satılan Kartlar</div>
+                            <div class="stat-value">456</div>
+                            <div class="stat-change">↑ %12</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Kullanılan Kartlar</div>
+                            <div class="stat-value">312</div>
+                            <div class="stat-change">↑ %8</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Aktif Kartlar</div>
+                            <div class="stat-value">144</div>
+                            <div class="stat-change">↑ %5</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Toplam Gelir</div>
+                            <div class="stat-value">245K₺</div>
+                            <div class="stat-change">↑ %18</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Komisyon Oranı</div>
+                            <div class="stat-value">%7</div>
+                            <div class="stat-change">17,150₺</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Bekleyen Bakiye</div>
+                            <div class="stat-value">32,400₺</div>
+                            <div class="stat-change negative">Ödenmedi</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Charts (2 columns) -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Haftalık Gelir</h4>
+                            <div class="chart-placeholder">
+                                [Haftalık Gelir Grafiği - Pazartesi-Pazar: 8,500₺ / 12,300₺ / 9,800₺ / 15,600₺ / 18,200₺ / 14,500₺ / 7,200₺]
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Kart Türlerine Göre Satış</h4>
+                            <div class="chart-placeholder">
+                                [Kart Türü Grafiği - 100₺: 125 / 250₺: 98 / 500₺: 154 / 1000₺: 79]
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Last Transactions Table -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Son İşlemler</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Saat</th>
+                                    <th>Tür</th>
+                                    <th>Müşteri</th>
+                                    <th>Şube</th>
+                                    <th>Tutar</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>14:35</td>
+                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
+                                    <td>Ahmet Kaya</td>
+                                    <td>Nişantaşı</td>
+                                    <td>250₺</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>13:52</td>
+                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
+                                    <td>Fatma Şahin</td>
+                                    <td>Kadıköy</td>
+                                    <td>450🪙 (67,50₺)</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>12:28</td>
+                                    <td><span class="badge badge-info">Kart Satış</span></td>
+                                    <td>Mehmet Yılmaz</td>
+                                    <td>Bağdat Caddesi</td>
+                                    <td>500₺</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>11:15</td>
+                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
+                                    <td>Selin Demir</td>
+                                    <td>Kızılay</td>
+                                    <td>100₺</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>10:42</td>
+                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
+                                    <td>Burak Çetin</td>
+                                    <td>Alsancak</td>
+                                    <td>300🪙 (45,00₺)</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>09:58</td>
+                                    <td><span class="badge badge-info">Kart Satış</span></td>
+                                    <td>Zeynep Aktar</td>
+                                    <td>Nişantaşı</td>
+                                    <td>1,000₺</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>08:34</td>
+                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
+                                    <td>Can Öztürk</td>
+                                    <td>Kadıköy</td>
+                                    <td>250₺</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>07:19</td>
+                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
+                                    <td>Ayşe Yaman</td>
+                                    <td>Bağdat Caddesi</td>
+                                    <td>600🪙 (90,00₺)</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: PERFORMANS (PERFORMANCE) -->
+                <div id="section-performance" class="section">
+                    <!-- Stats Row -->
+                    <div class="grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">Aylık Gelir</div>
+                            <div class="stat-value">245K₺</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Büyüme</div>
+                            <div class="stat-value">%18</div>
+                            <div class="stat-change">↑ Ayda Göre</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Müşteri Sayısı</div>
+                            <div class="stat-value">1,234</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="stat-card">
+                            <div class="stat-label">Ortalama İşlem</div>
+                            <div class="stat-value">560₺</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Aylık Gelir Trendi (Son 6 Ay)</h4>
+                        <div class="chart-placeholder">
+                            [Aylık Gelir Grafiği - Ekim: 156K₺ / Kasım: 189K₺ / Aralık: 212K₺ / Ocak: 228K₺ / Şubat: 238K₺ / Mart: 245K₺]
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Şubelere Göre Performans</h4>
+                        <div class="chart-placeholder">
+                            [Şube Performans Grafiği - Nişantaşı: 52,340₺ / Kadıköy: 48,920₺ / Bağdat Caddesi: 45,670₺ / Kızılay: 58,230₺ / Alsancak: 39,840₺]
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">En Çok Satan Kartlar</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Şablon Adı</th>
+                                    <th>Fiyat</th>
+                                    <th>Satış Adedi</th>
+                                    <th>Gelir</th>
+                                    <th>Yüzde</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Platinum Kart</td>
+                                    <td>1,000₺</td>
+                                    <td>78</td>
+                                    <td>78,000₺</td>
+                                    <td>31.8%</td>
+                                </tr>
+                                <tr>
+                                    <td>Gold Kart</td>
+                                    <td>500₺</td>
+                                    <td>154</td>
+                                    <td>77,000₺</td>
+                                    <td>31.4%</td>
+                                </tr>
+                                <tr>
+                                    <td>Premium Kart</td>
+                                    <td>250₺</td>
+                                    <td>98</td>
+                                    <td>24,500₺</td>
+                                    <td>10.0%</td>
+                                </tr>
+                                <tr>
+                                    <td>Standart Kart</td>
+                                    <td>100₺</td>
+                                    <td>126</td>
+                                    <td>12,600₺</td>
+                                    <td>5.1%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: HEDİYE KARTLARI (CARDS) -->
+                <div id="section-cards" class="section">
+                    <div class="card">
+                        <div class="tabs">
+                            <button class="tab active" data-tab="templates">Şablonlar</button>
+                            <button class="tab" data-tab="sales">Satışlar</button>
+                            <button class="tab" data-tab="active-cards">Aktif Kartlar</button>
+                        </div>
+
+                        <!-- TAB: Şablonlar -->
+                        <div id="templates-tab" class="tab-content active">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Şablon Adı</th>
+                                        <th>Fiyat</th>
+                                        <th>Kategori</th>
+                                        <th>Satış Adedi</th>
+                                        <th>Durum</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Standart Kart</td>
+                                        <td>100₺</td>
+                                        <td>Temel</td>
+                                        <td>426</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                        <td><button class="btn btn-secondary btn-small">Düzenle</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Premium Kart</td>
+                                        <td>250₺</td>
+                                        <td>Orta</td>
+                                        <td>312</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                        <td><button class="btn btn-secondary btn-small">Düzenle</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gold Kart</td>
+                                        <td>500₺</td>
+                                        <td>Premium</td>
+                                        <td>187</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                        <td><button class="btn btn-secondary btn-small">Düzenle</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Platinum Kart</td>
+                                        <td>1,000₺</td>
+                                        <td>VIP</td>
+                                        <td>156</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                        <td><button class="btn btn-secondary btn-small">Düzenle</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- TAB: Satışlar -->
+                        <div id="sales-tab" class="tab-content" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Kart Kodu</th>
+                                        <th>Alıcı</th>
+                                        <th>Şablon</th>
+                                        <th>Tutar</th>
+                                        <th>Tarih</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>SYY-2847-3921</td>
+                                        <td>Ahmet Kaya</td>
+                                        <td>Premium Kart</td>
+                                        <td>250₺</td>
+                                        <td>18 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-5634-7192</td>
+                                        <td>Fatma Şahin</td>
+                                        <td>Gold Kart</td>
+                                        <td>500₺</td>
+                                        <td>17 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-1928-5640</td>
+                                        <td>Mehmet Yılmaz</td>
+                                        <td>Platinum Kart</td>
+                                        <td>1,000₺</td>
+                                        <td>17 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-7840-2156</td>
+                                        <td>Selin Demir</td>
+                                        <td>Standart Kart</td>
+                                        <td>100₺</td>
+                                        <td>16 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-3456-8901</td>
+                                        <td>Burak Çetin</td>
+                                        <td>Premium Kart</td>
+                                        <td>250₺</td>
+                                        <td>16 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-9876-1234</td>
+                                        <td>Zeynep Aktar</td>
+                                        <td>Gold Kart</td>
+                                        <td>500₺</td>
+                                        <td>15 Mar 2026</td>
+                                        <td><span class="badge badge-success">Ödenmiş</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- TAB: Aktif Kartlar -->
+                        <div id="active-cards-tab" class="tab-content" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Kart Kodu</th>
+                                        <th>Alıcı</th>
+                                        <th>Bakiye</th>
+                                        <th>Son Kullanma</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>SYY-2847-3921</td>
+                                        <td>Ahmet Kaya</td>
+                                        <td>157,50₺</td>
+                                        <td>17 Eylül 2026</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-5634-7192</td>
+                                        <td>Fatma Şahin</td>
+                                        <td>312,75₺</td>
+                                        <td>17 Eylül 2026</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-1928-5640</td>
+                                        <td>Mehmet Yılmaz</td>
+                                        <td>487,30₺</td>
+                                        <td>17 Eylül 2026</td>
+                                        <td><span class="badge badge-success">Aktif</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-7840-2156</td>
+                                        <td>Selin Demir</td>
+                                        <td>45,20₺</td>
+                                        <td>16 Eylül 2026</td>
+                                        <td><span class="badge badge-warning">Az Bakiye</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SYY-3456-8901</td>
+                                        <td>Burak Çetin</td>
+                                        <td>0₺</td>
+                                        <td>16 Eylül 2026</td>
+                                        <td><span class="badge badge-danger">Sona Erdi</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: TOKEN ÖDEMELERİ (TOKEN PAYMENTS) -->
+                <div id="section-token-payments" class="section">
+                    <!-- Stats Row -->
+                    <div class="grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">Bugün</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">3 Ödeme</div>
+                            <div class="stat-change">450🪙</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Bu Hafta</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">18 Ödeme</div>
+                            <div class="stat-change">2,340🪙</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Bu Ay</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">67 Ödeme</div>
+                            <div class="stat-change">8,900🪙</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">Toplam</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">234 Ödeme</div>
+                            <div class="stat-change">31,200🪙</div>
+                        </div>
+                    </div>
+
+                    <!-- Token Payment History Table -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Token Ödeme Geçmişi</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Müşteri</th>
+                                    <th>Token Miktarı</th>
+                                    <th>₺ Karşılığı</th>
+                                    <th>Şube</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>18 Mar 14:35</td>
+                                    <td>Ahmet Kaya</td>
+                                    <td>150🪙</td>
+                                    <td>22,50₺</td>
+                                    <td>Nişantaşı</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>18 Mar 12:52</td>
+                                    <td>Fatma Şahin</td>
+                                    <td>300🪙</td>
+                                    <td>45,00₺</td>
+                                    <td>Kadıköy</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>17 Mar 16:20</td>
+                                    <td>Mehmet Yılmaz</td>
+                                    <td>200🪙</td>
+                                    <td>30,00₺</td>
+                                    <td>Bağdat Caddesi</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>17 Mar 11:15</td>
+                                    <td>Selin Demir</td>
+                                    <td>450🪙</td>
+                                    <td>67,50₺</td>
+                                    <td>Kızılay</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>16 Mar 15:42</td>
+                                    <td>Burak Çetin</td>
+                                    <td>320🪙</td>
+                                    <td>48,00₺</td>
+                                    <td>Alsancak</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>16 Mar 10:08</td>
+                                    <td>Zeynep Aktar</td>
+                                    <td>180🪙</td>
+                                    <td>27,00₺</td>
+                                    <td>Nişantaşı</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15 Mar 14:30</td>
+                                    <td>Can Öztürk</td>
+                                    <td>250🪙</td>
+                                    <td>37,50₺</td>
+                                    <td>Kadıköy</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                                <tr>
+                                    <td>14 Mar 09:45</td>
+                                    <td>Ayşe Yaman</td>
+                                    <td>410🪙</td>
+                                    <td>61,50₺</td>
+                                    <td>Bağdat Caddesi</td>
+                                    <td><span class="badge badge-success">Başarılı</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: QR TARAMA (QR SCANNER) -->
+                <div id="section-qr-scanner" class="section">
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">QR Tarama</h4>
+
+                        <div class="scanner-area">
+                            <div class="scanner-box">
+                                <div class="scanner-icon">📷</div>
+                                <div class="scanner-text">Kamerayı QR koda tutun</div>
+                            </div>
+
+                            <div class="manual-input-group">
+                                <input type="text" placeholder="Manuel olarak kod giriniz...">
+                                <button class="btn btn-primary">Doğrula</button>
+                            </div>
+                        </div>
+
+                        <h5 style="margin-bottom: 12px; font-size: 13px; font-weight: 600;">Son 5 Tarama</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Saat</th>
+                                    <th>Tür</th>
+                                    <th>Kod / Token</th>
+                                    <th>Müşteri</th>
+                                    <th>Tutar</th>
+                                    <th>Sonuç</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>14:35</td>
+                                    <td><span class="badge badge-info">Kart Taraması</span></td>
+                                    <td>SYY-2847-3921</td>
+                                    <td>Ahmet Kaya</td>
+                                    <td>250₺</td>
+                                    <td><span class="badge badge-success">Geçerli</span></td>
+                                </tr>
+                                <tr>
+                                    <td>13:52</td>
+                                    <td><span class="badge badge-warning">Token Taraması</span></td>
+                                    <td>TOK-5634-VITA</td>
+                                    <td>Fatma Şahin</td>
+                                    <td>450🪙</td>
+                                    <td><span class="badge badge-success">Geçerli</span></td>
+                                </tr>
+                                <tr>
+                                    <td>12:28</td>
+                                    <td><span class="badge badge-info">Kart Taraması</span></td>
+                                    <td>SYY-1928-5640</td>
+                                    <td>Mehmet Yılmaz</td>
+                                    <td>500₺</td>
+                                    <td><span class="badge badge-success">Geçerli</span></td>
+                                </tr>
+                                <tr>
+                                    <td>11:15</td>
+                                    <td><span class="badge badge-info">Kart Taraması</span></td>
+                                    <td>SYY-7840-2156</td>
+                                    <td>Selin Demir</td>
+                                    <td>100₺</td>
+                                    <td><span class="badge badge-success">Geçerli</span></td>
+                                </tr>
+                                <tr>
+                                    <td>10:42</td>
+                                    <td><span class="badge badge-warning">Token Taraması</span></td>
+                                    <td>TOK-3456-VITA</td>
+                                    <td>Burak Çetin</td>
+                                    <td>300🪙</td>
+                                    <td><span class="badge badge-success">Geçerli</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: CARİ HESAP (LEDGER) -->
+                <div id="section-ledger" class="section">
+                    <!-- Summary Cards Row -->
+                    <div class="grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">Toplam Borç</div>
+                            <div class="stat-value">245,000₺</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Toplam Ödenen</div>
+                            <div class="stat-value">212,600₺</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Bekleyen</div>
+                            <div class="stat-value">32,400₺</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="stat-card">
+                            <div class="stat-label">Sonraki Ödeme</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">15 Mart 2026</div>
+                            <div class="stat-change">Şehir: Nişantaşı</div>
+                        </div>
+                    </div>
+
+                    <!-- Ledger Table -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Cari Hesap Dökümü</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>İşlem</th>
+                                    <th>Borç</th>
+                                    <th>Alacak</th>
+                                    <th>Bakiye</th>
+                                    <th>Açıklama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>18 Mar 2026</td>
+                                    <td>Kart Kullanım</td>
+                                    <td>250₺</td>
+                                    <td>-</td>
+                                    <td>32,400₺</td>
+                                    <td>Ahmet Kaya - Nişantaşı</td>
+                                </tr>
+                                <tr>
+                                    <td>18 Mar 2026</td>
+                                    <td>Toplu Ödeme</td>
+                                    <td>-</td>
+                                    <td>5,000₺</td>
+                                    <td>32,150₺</td>
+                                    <td>Haftalık Batch Ödeme</td>
+                                </tr>
+                                <tr>
+                                    <td>17 Mar 2026</td>
+                                    <td>Kart Satış</td>
+                                    <td>500₺</td>
+                                    <td>-</td>
+                                    <td>37,150₺</td>
+                                    <td>Mehmet Yılmaz - Premium Kart</td>
+                                </tr>
+                                <tr>
+                                    <td>17 Mar 2026</td>
+                                    <td>Token Ödeme</td>
+                                    <td>67,50₺</td>
+                                    <td>-</td>
+                                    <td>36,650₺</td>
+                                    <td>Fatma Şahin - 450🪙</td>
+                                </tr>
+                                <tr>
+                                    <td>16 Mar 2026</td>
+                                    <td>Kart Kullanım</td>
+                                    <td>100₺</td>
+                                    <td>-</td>
+                                    <td>36,717,50₺</td>
+                                    <td>Selin Demir - Kızılay</td>
+                                </tr>
+                                <tr>
+                                    <td>16 Mar 2026</td>
+                                    <td>Toplu Ödeme</td>
+                                    <td>-</td>
+                                    <td>8,500₺</td>
+                                    <td>36,617,50₺</td>
+                                    <td>Haftalık Batch Ödeme</td>
+                                </tr>
+                                <tr>
+                                    <td>15 Mar 2026</td>
+                                    <td>Kart Satış</td>
+                                    <td>1,000₺</td>
+                                    <td>-</td>
+                                    <td>45,117,50₺</td>
+                                    <td>Zeynep Aktar - Platinum Kart</td>
+                                </tr>
+                                <tr>
+                                    <td>15 Mar 2026</td>
+                                    <td>Kart Kullanım</td>
+                                    <td>250₺</td>
+                                    <td>-</td>
+                                    <td>44,117,50₺</td>
+                                    <td>Can Öztürk - Kadıköy</td>
+                                </tr>
+                                <tr>
+                                    <td>14 Mar 2026</td>
+                                    <td>Token Ödeme</td>
+                                    <td>90₺</td>
+                                    <td>-</td>
+                                    <td>44,367,50₺</td>
+                                    <td>Ayşe Yaman - 600🪙</td>
+                                </tr>
+                                <tr>
+                                    <td>14 Mar 2026</td>
+                                    <td>Toplu Ödeme</td>
+                                    <td>-</td>
+                                    <td>7,200₺</td>
+                                    <td>44,277,50₺</td>
+                                    <td>Haftalık Batch Ödeme</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+<div class="section" id="section-batch">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon-box">18</div>
+      <div class="label">Toplam Ödeme</div>
+      <div class="value">18</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">15</div>
+      <div class="label">Tamamlanan</div>
+      <div class="value">15</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">2</div>
+      <div class="label">Bekleyen</div>
+      <div class="value">2</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">1</div>
+      <div class="label">İptal</div>
+      <div class="value">1</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Ödeme Geçmişi</h3>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Batch ID</th>
+          <th>Tarih</th>
+          <th>İşlem Sayısı</th>
+          <th>Brüt Tutar</th>
+          <th>Komisyon</th>
+          <th>Net Tutar</th>
+          <th>Durum</th>
+          <th>Referans</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>BATCH-2026-001</td>
+          <td>18 Mart 2026</td>
+          <td>24</td>
+          <td>2.450,00 ₺</td>
+          <td>122,50 ₺</td>
+          <td>2.327,50 ₺</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>REF-001-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-002</td>
+          <td>17 Mart 2026</td>
+          <td>18</td>
+          <td>1.890,00 ₺</td>
+          <td>94,50 ₺</td>
+          <td>1.795,50 ₺</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>REF-002-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-003</td>
+          <td>16 Mart 2026</td>
+          <td>31</td>
+          <td>3.120,00 ₺</td>
+          <td>156,00 ₺</td>
+          <td>2.964,00 ₺</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>REF-003-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-004</td>
+          <td>15 Mart 2026</td>
+          <td>15</td>
+          <td>1.650,00 ₺</td>
+          <td>82,50 ₺</td>
+          <td>1.567,50 ₺</td>
+          <td><span class="badge badge-warning">Beklemede</span></td>
+          <td>REF-004-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-005</td>
+          <td>14 Mart 2026</td>
+          <td>22</td>
+          <td>2.210,00 ₺</td>
+          <td>110,50 ₺</td>
+          <td>2.099,50 ₺</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>REF-005-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-006</td>
+          <td>13 Mart 2026</td>
+          <td>19</td>
+          <td>2.090,00 ₺</td>
+          <td>104,50 ₺</td>
+          <td>1.985,50 ₺</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>REF-006-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-007</td>
+          <td>12 Mart 2026</td>
+          <td>27</td>
+          <td>2.700,00 ₺</td>
+          <td>135,00 ₺</td>
+          <td>2.565,00 ₺</td>
+          <td><span class="badge badge-warning">Beklemede</span></td>
+          <td>REF-007-2026</td>
+        </tr>
+        <tr>
+          <td>BATCH-2026-008</td>
+          <td>11 Mart 2026</td>
+          <td>16</td>
+          <td>1.760,00 ₺</td>
+          <td>88,00 ₺</td>
+          <td>1.672,00 ₺</td>
+          <td><span class="badge badge-danger">İptal</span></td>
+          <td>REF-008-2026</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-bank">
+  <div class="table-card">
+    <h3>Banka Bilgileri</h3>
+
+    <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+      <div style="margin-bottom: 10px;">
+        <strong>Banka:</strong> Ziraat Bankası
+      </div>
+      <div style="margin-bottom: 10px;">
+        <strong>IBAN:</strong> TR12 0001 0012 3456 7890 1234 56
+      </div>
+      <div style="margin-bottom: 10px;">
+        <strong>Hesap Sahibi:</strong> Kahve Dünyası A.Ş.
+      </div>
+      <div style="margin-bottom: 10px;">
+        <strong>Ödeme Yöntemi:</strong> Banka Havalesi
+      </div>
+      <button class="btn btn-primary" onclick="toggleBankEdit()">Düzenle</button>
+    </div>
+
+    <div id="bank-edit-form" style="display: none; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <div class="form-group">
+        <label>Banka</label>
+        <select>
+          <option selected>Ziraat Bankası</option>
+          <option>Garanti Bankası</option>
+          <option>İş Bankası</option>
+          <option>Yapı Kredi</option>
+          <option>Akbank</option>
+          <option>Halkbank</option>
+          <option>Vakıfbank</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>IBAN</label>
+        <input type="text" value="TR12 0001 0012 3456 7890 1234 56" />
+      </div>
+      <div class="form-group">
+        <label>Hesap Sahibi</label>
+        <input type="text" value="Kahve Dünyası A.Ş." />
+      </div>
+      <button class="btn btn-success" onclick="saveBankInfo()">Kaydet</button>
+    </div>
+
+    <div style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px; font-size: 14px;">
+      <strong>Not:</strong> Banka bilgileri sadece işletme sahibi tarafından değiştirilebilir.
+    </div>
+  </div>
+</div>
+
+<div class="section" id="section-nearby-profile">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon-box">2.3K</div>
+      <div class="label">NearbyMe Görüntülenme</div>
+      <div class="value">2,340</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">567</div>
+      <div class="label">Check-in Sayısı</div>
+      <div class="value">567</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">⭐</div>
+      <div class="label">Ortalama Puan</div>
+      <div class="value">4.7</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>İşletme Profili</h3>
+
+    <div style="margin-bottom: 20px;">
+      <div class="form-group">
+        <label>Kategori</label>
+        <input type="text" value="Kafe & Restoran" />
+      </div>
+      <div class="form-group">
+        <label>Açıklama</label>
+        <textarea placeholder="İşletme açıklaması yazın..." style="min-height: 100px;">Kahve Dünyası, özel kahveler ve tatlı seçenekleri sunuyor. Rahat çalışma ortamı ve wifi ile idealdir.</textarea>
+      </div>
+      <div class="form-group">
+        <label>Çalışma Saatleri</label>
+        <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+          Pzt-Cum: 08:00-22:00<br/>
+          Cmt-Paz: 09:00-23:00
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Etiketler</label>
+        <div>
+          <span class="badge badge-info">Kahve</span>
+          <span class="badge badge-info">Tatlı</span>
+          <span class="badge badge-info">Brunch</span>
+          <span class="badge badge-info">Çalışma Alanı</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Fotoğraflar</label>
+        <div class="grid-3" style="gap: 10px;">
+          <div style="width: 150px; height: 100px; background: #ddd; border-radius: 8px;"></div>
+          <div style="width: 150px; height: 100px; background: #ddd; border-radius: 8px;"></div>
+          <div style="width: 150px; height: 100px; background: #ddd; border-radius: 8px;"></div>
+          <div style="width: 150px; height: 100px; background: #ddd; border-radius: 8px;"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary">Profili Güncelle</button>
+  </div>
+
+  <div class="table-card">
+    <h3>Son Check-in'ler</h3>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Tarih</th>
+          <th>Kullanıcı</th>
+          <th>Durum Notu</th>
+          <th>Süre</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>18 Mart 14:32</td>
+          <td>Zeynep K.</td>
+          <td>Kahve molası ☕</td>
+          <td>45 dakika</td>
+        </tr>
+        <tr>
+          <td>18 Mart 10:15</td>
+          <td>Emre D.</td>
+          <td>Çalışıyorum 💻</td>
+          <td>2 saat 15 dakika</td>
+        </tr>
+        <tr>
+          <td>17 Mart 16:20</td>
+          <td>Ayşe Ş.</td>
+          <td>Arkadaşlarla buluşma 👥</td>
+          <td>1 saat 30 dakika</td>
+        </tr>
+        <tr>
+          <td>17 Mart 11:45</td>
+          <td>Mert B.</td>
+          <td>Öğle yemeği 🍽️</td>
+          <td>1 saat</td>
+        </tr>
+        <tr>
+          <td>16 Mart 15:00</td>
+          <td>Can Ö.</td>
+          <td>Çalışıyorum 💻</td>
+          <td>3 saat</td>
+        </tr>
+        <tr>
+          <td>16 Mart 09:30</td>
+          <td>Selin T.</td>
+          <td>Kahve & çalışma 📚</td>
+          <td>2 saat 45 dakika</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-campaigns">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon-box">3</div>
+      <div class="label">Aktif Kampanya</div>
+      <div class="value">3</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">456</div>
+      <div class="label">Toplam Katılım</div>
+      <div class="value">456</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">📊</div>
+      <div class="label">Dönüşüm Oranı</div>
+      <div class="value">12.4%</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Kampanya Oluştur</h3>
+    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <div class="form-group">
+        <label>Kampanya Adı</label>
+        <input type="text" placeholder="Kampanya adını girin..." />
+      </div>
+      <div class="form-group">
+        <label>Tür</label>
+        <select>
+          <option>İndirim</option>
+          <option>Hediye Token</option>
+          <option>1+1</option>
+          <option>Özel Teklif</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Başlangıç Tarihi</label>
+          <input type="date" />
+        </div>
+        <div class="form-group">
+          <label>Bitiş Tarihi</label>
+          <input type="date" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Token Bütçesi</label>
+        <input type="number" placeholder="Bütçe miktarı girin..." />
+      </div>
+      <div class="form-group">
+        <label>Açıklama</label>
+        <textarea placeholder="Kampanya açıklaması yazın..." style="min-height: 80px;"></textarea>
+      </div>
+      <button class="btn btn-success" onclick="createCampaign()">Kampanya Oluştur (25🪙)</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Aktif Kampanyalar</h3>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Kampanya Adı</th>
+          <th>Tür</th>
+          <th>Başlangıç</th>
+          <th>Bitiş</th>
+          <th>Katılım</th>
+          <th>Harcanan Token</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mart Kahve İndirimi</td>
+          <td>İndirim (%15)</td>
+          <td>1 Mart 2026</td>
+          <td>31 Mart 2026</td>
+          <td>156</td>
+          <td>234 🪙</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+        </tr>
+        <tr>
+          <td>Brunch Promosyonu</td>
+          <td>Hediye Token</td>
+          <td>15 Mart 2026</td>
+          <td>30 Nisan 2026</td>
+          <td>89</td>
+          <td>445 🪙</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+        </tr>
+        <tr>
+          <td>Çalışan Arkadaş Getir</td>
+          <td>1+1</td>
+          <td>10 Mart 2026</td>
+          <td>25 Mart 2026</td>
+          <td>211</td>
+          <td>789 🪙</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+        </tr>
+        <tr>
+          <td>Özel Açılış Teklifi</td>
+          <td>Özel Teklif</td>
+          <td>5 Şubat 2026</td>
+          <td>28 Şubat 2026</td>
+          <td>445</td>
+          <td>1.234 🪙</td>
+          <td><span class="badge badge-warning">Sona Yakın</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-reviews">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon-box">23</div>
+      <div class="label">Toplam Denetim</div>
+      <div class="value">23</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">⭐</div>
+      <div class="label">Ortalama Puan</div>
+      <div class="value">4.2</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">📅</div>
+      <div class="label">Son Denetim</div>
+      <div class="value">12 Mar</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Genel Denetim Puanı</h3>
+    <div style="text-align: center; padding: 30px; background: #f9f9f9; border-radius: 8px; margin-bottom: 20px;">
+      <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">4.2</div>
+      <div style="font-size: 20px; margin-bottom: 20px;">⭐⭐⭐⭐</div>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 300px; margin: 0 auto;">
+        <div>
+          <div style="font-weight: bold;">4.5</div>
+          <div style="font-size: 12px; color: #666;">Temizlik</div>
+        </div>
+        <div>
+          <div style="font-weight: bold;">4.0</div>
+          <div style="font-size: 12px; color: #666;">Hizmet</div>
+        </div>
+        <div>
+          <div style="font-weight: bold;">4.3</div>
+          <div style="font-size: 12px; color: #666;">Ürün Kalitesi</div>
+        </div>
+        <div>
+          <div style="font-weight: bold;">4.1</div>
+          <div style="font-size: 12px; color: #666;">Ambiyans</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Denetim Geçmişi</h3>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Tarih</th>
+          <th>Denetçi</th>
+          <th>Puan</th>
+          <th>Temizlik</th>
+          <th>Hizmet</th>
+          <th>Ürün</th>
+          <th>Yorum</th>
+          <th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>12 Mart 2026</td>
+          <td>Fatih Y.</td>
+          <td>4.3 ⭐</td>
+          <td>4.5</td>
+          <td>4.2</td>
+          <td>4.3</td>
+          <td>Kahve kalitesi mükemmel, temizlik iyi.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+        <tr>
+          <td>5 Mart 2026</td>
+          <td>Şerif K.</td>
+          <td>4.0 ⭐</td>
+          <td>4.0</td>
+          <td>4.0</td>
+          <td>4.1</td>
+          <td>Genel memnuniyetim iyi, biraz daha hız tercih ederim.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+        <tr>
+          <td>26 Şubat 2026</td>
+          <td>Nazlı A.</td>
+          <td>4.4 ⭐</td>
+          <td>4.5</td>
+          <td>4.3</td>
+          <td>4.4</td>
+          <td>Ortam çok sıcak, kahve seçeneği geniş.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+        <tr>
+          <td>18 Şubat 2026</td>
+          <td>Metin E.</td>
+          <td>4.1 ⭐</td>
+          <td>4.2</td>
+          <td>3.9</td>
+          <td>4.1</td>
+          <td>Kahveler iyi fakat bekleme süresi uzun olabilir.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+        <tr>
+          <td>10 Şubat 2026</td>
+          <td>Gülşah D.</td>
+          <td>4.5 ⭐</td>
+          <td>4.6</td>
+          <td>4.4</td>
+          <td>4.5</td>
+          <td>Mükemmel hizmet ve çalışma ortamı. Tavsiye ederim.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+        <tr>
+          <td>2 Şubat 2026</td>
+          <td>Kerem B.</td>
+          <td>4.0 ⭐</td>
+          <td>4.1</td>
+          <td>3.8</td>
+          <td>4.0</td>
+          <td>İyi bir yer, tekrar gelmek isterim.</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openModal('review-modal')">Detay</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-task-requests">
+  <div style="padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px; margin-bottom: 20px;">
+    <strong>ℹ️ Bilgi:</strong> Gözlemle modülü üzerinden işletmenize özel denetim görevi oluşturabilirsiniz.
+  </div>
+
+  <div class="table-card">
+    <h3>Yeni Görev Talebi</h3>
+    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <div class="form-group">
+        <label>Görev Türü</label>
+        <select>
+          <option>Kalite Kontrol</option>
+          <option>Hizmet Değerlendirme</option>
+          <option>Temizlik Denetimi</option>
+          <option>Gizli Müşteri</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Açıklama</label>
+        <textarea placeholder="Görev açıklaması yazın..." style="min-height: 80px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Token Ödülü (min: 65, max: 95)</label>
+        <input type="number" min="65" max="95" placeholder="Token miktarı girin..." />
+      </div>
+      <button class="btn btn-primary" onclick="createTask()">Görev Oluştur</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Görev Geçmişi</h3>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Tarih</th>
+          <th>Tür</th>
+          <th>Denetçi</th>
+          <th>Durum</th>
+          <th>Puan</th>
+          <th>Token</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>16 Mart 2026</td>
+          <td>Kalite Kontrol</td>
+          <td>Serkan T.</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>4.3 ⭐</td>
+          <td>85 🪙</td>
+        </tr>
+        <tr>
+          <td>12 Mart 2026</td>
+          <td>Hizmet Değerlendirme</td>
+          <td>Dilek Ş.</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>4.0 ⭐</td>
+          <td>75 🪙</td>
+        </tr>
+        <tr>
+          <td>8 Mart 2026</td>
+          <td>Temizlik Denetimi</td>
+          <td>Volkan Ç.</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>4.5 ⭐</td>
+          <td>90 🪙</td>
+        </tr>
+        <tr>
+          <td>3 Mart 2026</td>
+          <td>Gizli Müşteri</td>
+          <td>Ayça B.</td>
+          <td><span class="badge badge-success">Tamamlandı</span></td>
+          <td>4.2 ⭐</td>
+          <td>80 🪙</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-staff">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon-box">5</div>
+      <div class="label">Toplam</div>
+      <div class="value">5</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">1</div>
+      <div class="label">Yönetici</div>
+      <div class="value">1</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">1</div>
+      <div class="label">Müdür</div>
+      <div class="value">1</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon-box">3</div>
+      <div class="label">Personel</div>
+      <div class="value">3</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0;">Çalışan Listesi</h3>
+      <button class="btn btn-primary" onclick="addStaff()">Çalışan Ekle</button>
+    </div>
+    <table>
+      <thead>
+        <tr class="table-header">
+          <th>Ad Soyad</th>
+          <th>Rol</th>
+          <th>E-posta</th>
+          <th>Telefon</th>
+          <th>Şube</th>
+          <th>Son Giriş</th>
+          <th>Durum</th>
+          <th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mehmet Yılmaz</td>
+          <td><span class="badge badge-purple">Yönetici</span></td>
+          <td>mehmet@kahvedunyasi.com</td>
+          <td>+90 532 123 4567</td>
+          <td>Nişantaşı</td>
+          <td>Bugün 09:15</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td><button class="btn btn-sm btn-outline">Düzenle</button></td>
+        </tr>
+        <tr>
+          <td>Ayşe Kara</td>
+          <td><span class="badge badge-info">Müdür</span></td>
+          <td>ayse@kahvedunyasi.com</td>
+          <td>+90 532 234 5678</td>
+          <td>Kadıköy</td>
+          <td>Bugün 08:45</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td><button class="btn btn-sm btn-outline">Düzenle</button></td>
+        </tr>
+        <tr>
+          <td>Emre Demir</td>
+          <td><span class="badge badge-info">Personel</span></td>
+          <td>emre@kahvedunyasi.com</td>
+          <td>+90 532 345 6789</td>
+          <td>Bağdat Cd</td>
+          <td>Dün 18:30</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td><button class="btn btn-sm btn-outline">Düzenle</button></td>
+        </tr>
+        <tr>
+          <td>Zeynep Aydın</td>
+          <td><span class="badge badge-info">Personel</span></td>
+          <td>zeynep@kahvedunyasi.com</td>
+          <td>+90 532 456 7890</td>
+          <td>Kızılay</td>
+          <td>2 gün önce</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td><button class="btn btn-sm btn-outline">Düzenle</button></td>
+        </tr>
+        <tr>
+          <td>Can Öztürk</td>
+          <td><span class="badge badge-info">Personel</span></td>
+          <td>can@kahvedunyasi.com</td>
+          <td>+90 532 567 8901</td>
+          <td>Alsancak</td>
+          <td>3 gün önce</td>
+          <td><span class="badge badge-warning">Pasif</span></td>
+          <td><button class="btn btn-sm btn-outline">Düzenle</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" id="section-settings">
+  <div class="grid-2">
+    <div class="table-card">
+      <h3>İşletme Bilgileri</h3>
+      <div class="form-group">
+        <label>İşletme Adı</label>
+        <input type="text" value="Kahve Dünyası" />
+      </div>
+      <div class="form-group">
+        <label>Kategori</label>
+        <input type="text" value="Kafe & Restoran" />
+      </div>
+      <div class="form-group">
+        <label>Vergi No</label>
+        <input type="text" value="1234567890" />
+      </div>
+      <div class="form-group">
+        <label>Telefon</label>
+        <input type="tel" value="+90 212 555 0123" />
+      </div>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" value="info@kahvedunyasi.com" />
+      </div>
+      <div class="form-group">
+        <label>Adres</label>
+        <input type="text" value="Nişantaşı, İstanbul" />
+      </div>
+      <button class="btn btn-success" onclick="saveSettings('İşletme Bilgileri')">Kaydet</button>
+    </div>
+
+    <div class="table-card">
+      <h3>Bildirim Ayarları</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+        <span>Yeni Satış</span>
+        <div class="toggle active"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+        <span>Kart Kullanım</span>
+        <div class="toggle active"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+        <span>Token Ödeme</span>
+        <div class="toggle active"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+        <span>Denetim Sonucu</span>
+        <div class="toggle active"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+        <span>Toplu Ödeme</span>
+        <div class="toggle"></div>
+      </div>
+      <button class="btn btn-success" onclick="saveSettings('Bildirim Ayarları')" style="margin-top: 15px; width: 100%;">Kaydet</button>
+    </div>
+
+    <div class="table-card">
+      <h3>QR Ayarları</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee;">
+        <span>Otomatik Onay</span>
+        <div class="toggle active"></div>
+      </div>
+      <div class="form-group">
+        <label>Minimum Tutar (₺)</label>
+        <input type="number" value="50" />
+      </div>
+      <button class="btn btn-success" onclick="saveSettings('QR Ayarları')">Kaydet</button>
+    </div>
+
+    <div class="table-card">
+      <h3>Güvenlik</h3>
+      <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;">Şifre Değiştir</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+        <span>İki Faktörlü Doğrulama</span>
+        <div class="toggle active"></div>
+      </div>
+      <button class="btn btn-success" onclick="saveSettings('Güvenlik')" style="margin-top: 15px; width: 100%;">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal">
+    <h2>Çalışan Ekle</h2>
+    <div class="form-group">
+      <label>Ad Soyad</label>
+      <input type="text" placeholder="Ad soyad girin..." />
+    </div>
+    <div class="form-group">
+      <label>E-posta</label>
+      <input type="email" placeholder="E-posta adresi girin..." />
+    </div>
+    <div class="form-group">
+      <label>Telefon</label>
+      <input type="tel" placeholder="Telefon numarası girin..." />
+    </div>
+    <div class="form-group">
+      <label>Şube</label>
+      <select>
+        <option>Nişantaşı</option>
+        <option>Kadıköy</option>
+        <option>Bağdat Cd</option>
+        <option>Kızılay</option>
+        <option>Alsancak</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select>
+        <option>Müdür</option>
+        <option>Personel</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-success" style="flex: 1;">Ekle</button>
+      <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('staff-modal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <h2>Denetim Detayı</h2>
+    <div style="width: 100%; height: 200px; background: #ddd; border-radius: 8px; margin-bottom: 20px;"></div>
+    <div style="margin-bottom: 15px;">
+      <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">4.3 ⭐⭐⭐⭐</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+      <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+        <div style="font-size: 12px; color: #666;">Temizlik</div>
+        <div style="font-weight: bold;">4.5</div>
+      </div>
+      <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+        <div style="font-size: 12px; color: #666;">Hizmet</div>
+        <div style="font-weight: bold;">4.2</div>
+      </div>
+      <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+        <div style="font-size: 12px; color: #666;">Ürün Kalitesi</div>
+        <div style="font-weight: bold;">4.3</div>
+      </div>
+      <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+        <div style="font-size: 12px; color: #666;">Ambiyans</div>
+        <div style="font-weight: bold;">4.1</div>
+      </div>
+    </div>
+    <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Denetçi Yorumu</div>
+      <div>Kahve kalitesi mükemmel, temizlik iyi, atmosfer rahatlatıcı. Hizmet hızlı ve profesyonel.</div>
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="closeModal('review-modal')">Kapat</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="campaign-modal">
+  <div class="modal">
+    <h2>Kampanya Onayı</h2>
+    <p style="margin: 20px 0; font-size: 16px;">Bu kampanyayı başlatmak istediğinize emin misiniz? 25🪙 hesabınızdan düşülecektir.</p>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-success" style="flex: 1;" onclick="confirmCampaign()">Onayla</button>
+      <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('campaign-modal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pageTitles = {
+  dashboard:'Pano', performance:'Performans', cards:'Hediye Kartları',
+  'token-payments':'Token Ödemeleri', 'qr-scanner':'QR Tarama',
+  ledger:'Cari Hesap', batch:'Toplu Ödemeler', bank:'Banka Bilgileri',
+  'nearby-profile':'NearbyMe Profil', campaigns:'Kampanyalar',
+  reviews:'Denetim Sonuçları', 'task-requests':'Görev Talepleri',
+  staff:'Çalışanlar', settings:'Ayarlar'
+};
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('section-' + name);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  const navLink = document.querySelector('.nav-link[data-section="' + name + '"]');
+  if (navLink) navLink.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[name] || name;
+}
+
+function showTab(btn, tabId) {
+  const container = btn.closest('.section') || btn.closest('.table-card');
+  container.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const target = container.querySelector('#' + tabId);
+  if (target) target.style.display = 'block';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function verifyCode() {
+  const input = document.querySelector('#section-qr-scanner input[type="text"]');
+  if (input && input.value) alert('Kod doğrulanıyor: ' + input.value);
+}
+function toggleBankEdit() {
+  const form = document.getElementById('bank-edit-form');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+function saveBankInfo() { alert('Banka bilgileri güncellendi!'); }
+function saveSettings(section) { alert(section + ' ayarları kaydedildi!'); }
+function addStaff() { openModal('staff-modal'); }
+function createTask() { alert('Görev talebi oluşturuldu!'); }
+function createCampaign() { openModal('campaign-modal'); }
+function confirmCampaign() { closeModal('campaign-modal'); alert('Kampanya başlatıldı! 25🪙 düşüldü.'); }
+
+// Nav click handlers
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSection(link.dataset.section);
+    });
+  });
+});
+
+// Close modals on outside click
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('show');
+});
+</script>
+</body>
+</html>

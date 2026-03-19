@@ -1,0 +1,716 @@
+// ─────────────────────────────────────────────────────
+// VITA Platform — Database Schema
+// T+1 Daily Batch Settlement Model
+// ─────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ══════════════════════════════════════════════════════
+// GEOGRAPHY
+// ══════════════════════════════════════════════════════
+
+model City {
+  id        String   @id @default(uuid())
+  name      String   // "İstanbul"
+  nameEn    String   // "Istanbul"
+  region    String?  // "Marmara Bölgesi"
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  branches Branch[]
+  giftCards GiftCard[]
+}
+
+// ══════════════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════════════
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  password      String?  // hashed (optional for OTP-based auth)
+  email         String?
+  name          String
+  avatarUrl     String?
+  role          String   @default("user") // user | admin
+  tokenBalance  Int      @default(0)
+  referralCode  String   @unique
+  referredBy    String?  // referralCode of the inviter
+  vitaId        String   @unique // VITA-100001 (subscriber number for payments)
+  cityId        String?
+  birthday      DateTime? // Doğum Günü (bildirimler için)
+  gender        String?  // male | female | other (özel gün bildirimleri için)
+  settings      String?  // JSON: {language, currency, pushNotifications, dailyReminder, friendActivity, soundEffects, haptics, biometricLogin}
+  deviceId      String?  // anti-fraud: device fingerprint
+  streakDays    Int      @default(0) // consecutive days with referral activity
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  purchasedCards  GiftCard[]       @relation("Buyer")
+  receivedCards   GiftCard[]       @relation("Recipient")
+  tokenHistory    TokenTransaction[]
+  referralsSent   Referral[]       @relation("Referrer")
+  referralsReceived Referral[]     @relation("Referred")
+  topUpOrders     TopUpOrder[]
+  tokenRedemptions TokenRedemption[]
+  giftCardConversions GiftCardConversion[]
+  mysteryTaskCompletions MysteryTaskCompletion[]
+  notifications          Notification[]
+  connectionsFrom        UserConnection[] @relation("ConnectionFrom")
+  connectionsTo          UserConnection[] @relation("ConnectionTo")
+  organizedGroups        GroupGift[]
+  location        UserLocation?  @relation("UserLocation")
+  nearbyMatches1  NearbyMatch[]  @relation("NearbyMatchUser1")
+  nearbyMatches2  NearbyMatch[]  @relation("NearbyMatchUser2")
+  nearbyMessages  NearbyMessage[] @relation("NearbyMessageSender")
+  jobsPosted       Job[]             @relation("JobsPosted")
+  jobApplications  JobApplication[]  @relation("JobApplications")
+  jobRatingsGiven  JobRating[]       @relation("JobRatingsGiven")
+  jobRatingsReceived JobRating[]     @relation("JobRatingsReceived")
+
+  @@index([phone])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// ══════════════════════════════════════════════════════
+// USER CONNECTIONS (Arkadaşlık / Bağlantılar)
+// Platform içi sosyal bağ — doğum günü hatırlatması vb.
+// ══════════════════════════════════════════════════════
+
+model UserConnection {
+  id          String   @id @default(uuid())
+  fromUserId  String   // bağlantıyı kuran
+  toUserId    String   // bağlanılan kişi
+  status      String   @default("pending") // pending | accepted | blocked
+  nickname    String?  // "Annem", "İş arkadaşım Murat"
+  createdAt   DateTime @default(now())
+  acceptedAt  DateTime?
+
+  fromUser User @relation("ConnectionFrom", fields: [fromUserId], references: [id])
+  toUser   User @relation("ConnectionTo", fields: [toUserId], references: [id])
+
+  @@unique([fromUserId, toUserId])
+}
+
+// ══════════════════════════════════════════════════════
+// MERCHANTS (İşletmeler)
+// ══════════════════════════════════════════════════════
+
+model Merchant {
+  id              String   @id @default(uuid())
+  name            String   // "Kahve Dünyası"
+  description     String?
+  logoUrl         String?
+  coverImageUrl   String?
+  category        String   // restaurant | spa | clinic | electronics | mall | sport
+  commissionRate  Float    @default(0.07) // 7% platform fee
+  rating          Float    @default(0.0)
+  isPartner       Boolean  @default(false) // promoted partner
+  isNationwide    Boolean  @default(false) // all cities
+  isActive        Boolean  @default(true)
+  approvalStatus  String   @default("pending") // pending | approved | rejected
+  rejectionReason String?
+
+  // Settlement config
+  settlementMethod String  @default("havale") // havale | ziraat | garanti | isbank | manual
+  bankAccount      String? // IBAN or Kaspi account
+  bankName         String?
+  binIin           String? // Business ID number (Vergi No)
+  contactPhone     String?
+  contactEmail     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branches      Branch[]
+  cardTemplates CardTemplate[]
+  giftCards     GiftCard[]
+  settlements   Settlement[]
+  merchantUsers MerchantUser[]
+  tokenRedemptions TokenRedemption[]
+  mysteryTasks  MysteryTask[]
+  batchSettlements BatchSettlement[]
+  ledgerEntries    LedgerEntry[]
+}
+
+// Merchant panel users (employees/owners)
+model MerchantUser {
+  id         String   @id @default(uuid())
+  merchantId String
+  phone      String   @unique
+  name       String
+  role       String   @default("staff") // owner | manager | staff
+  password   String   // hashed
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// BRANCHES (Şubeler)
+// ══════════════════════════════════════════════════════
+
+model Branch {
+  id         String   @id @default(uuid())
+  merchantId String
+  cityId     String
+  name       String   // "Kahve Dünyası — Nişantaşı"
+  address    String
+  phone      String?
+  latitude   Float?
+  longitude  Float?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  city       City     @relation(fields: [cityId], references: [id])
+  redemptions GiftCardRedemption[]
+}
+
+// ══════════════════════════════════════════════════════
+// GIFT CARD TEMPLATES & CARDS
+// ══════════════════════════════════════════════════════
+
+// Templates define what cards a merchant offers
+model CardTemplate {
+  id           String   @id @default(uuid())
+  merchantId   String
+  name         String   // "İkili Yemek"
+  description  String?
+  denomination Int      // amount in TL: 5000, 10000, etc.
+  tokenPrice   Int?     // price in tokens (if purchasable with tokens)
+  category     String   // dining | wellness | shopping | health
+  imageUrl     String?
+  bgColor      String   @default("#7C3AED")
+  validDays    Int      @default(365) // validity period
+  isAllCities  Boolean  @default(false) // usable in all cities
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  merchant  Merchant   @relation(fields: [merchantId], references: [id])
+  giftCards GiftCard[]
+}
+
+// Actual purchased gift cards
+model GiftCard {
+  id             String   @id @default(uuid())
+  code           String   @unique // "SYY-XXXX-XXXX-XXXX"
+  qrData         String   // QR code payload (signed)
+  templateId     String?  // null for VITA universal certificates
+  merchantId     String?  // null for VITA universal certificates (not merchant-specific)
+  buyerId        String
+  recipientId    String?  // null if not yet sent
+  recipientPhone String?  // phone of intended recipient
+  cityId         String?  // city restriction (null = all cities)
+  amount         Int      // TL value
+  paidAmount     Int      // what buyer actually paid (after discounts)
+  paidWithTokens Int      @default(0) // tokens used
+  status         String   @default("active") // active | sent | redeemed | expired | refunded
+  isVitaCert     Boolean  @default(false) // true = VITA universal certificate
+  message        String?  // gift message
+  purchasedAt    DateTime @default(now())
+  sentAt         DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  template    CardTemplate? @relation(fields: [templateId], references: [id])
+  merchant    Merchant?     @relation(fields: [merchantId], references: [id])
+  buyer       User          @relation("Buyer", fields: [buyerId], references: [id])
+  recipient   User?         @relation("Recipient", fields: [recipientId], references: [id])
+  city        City?         @relation(fields: [cityId], references: [id])
+  redemption  GiftCardRedemption?
+  conversion  GiftCardConversion?
+
+  @@index([buyerId])
+  @@index([recipientId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ══════════════════════════════════════════════════════
+// REDEMPTION (Çek Kullanımı)
+// ══════════════════════════════════════════════════════
+
+model GiftCardRedemption {
+  id           String   @id @default(uuid())
+  giftCardId   String   @unique
+  branchId     String
+  verifiedBy   String?  // MerchantUser who scanned
+  amount       Int      // amount redeemed
+  redeemedAt   DateTime @default(now())
+
+  // Settlement tracking
+  settlementId String?
+
+  giftCard   GiftCard    @relation(fields: [giftCardId], references: [id])
+  branch     Branch      @relation(fields: [branchId], references: [id])
+  settlement Settlement? @relation(fields: [settlementId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// SETTLEMENT (İşletmeye Ödeme — T+1 Daily Batch)
+// Her QR kullanım/hediye çeki kullanımı bir Settlement kaydı oluşturur
+// Akşam batch ile BatchSettlement'a toplanır
+// ══════════════════════════════════════════════════════
+
+model Settlement {
+  id             String   @id @default(uuid())
+  merchantId     String
+  totalAmount    Int      // gross amount (gift card face value)
+  commissionAmount Int    // platform fee
+  netAmount      Int      // what merchant receives
+  commissionRate Float    // rate at time of settlement
+  method         String   // havale | ziraat | garanti | isbank | manual
+  status         String   @default("pending") // pending | batched | processing | completed | failed
+  reference      String?  // bank transaction reference
+  failureReason  String?
+  batchId        String?  // hangi batch'e dahil
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  merchant    Merchant             @relation(fields: [merchantId], references: [id])
+  redemptions GiftCardRedemption[]
+  batch       BatchSettlement?     @relation(fields: [batchId], references: [id])
+
+  @@index([merchantId, status])
+  @@index([status, createdAt])
+}
+
+// ══════════════════════════════════════════════════════
+// BATCH SETTLEMENT (Günlük Toplu Ödeme)
+// Her akşam çalışan job tüm bekleyen ödemeleri toplar
+// Ertesi gün PSP API ile toplu ödeme yapılır
+// ══════════════════════════════════════════════════════
+
+model BatchSettlement {
+  id               String   @id @default(uuid())
+  batchDate        String   // "2026-03-16" — batch'in ait olduğu gün
+  merchantId       String
+  totalGross       Int      // toplam brüt tutar
+  totalCommission  Int      // toplam komisyon
+  totalNet         Int      // merchant'a ödenecek net tutar
+  itemCount        Int      // kaç işlem var
+  method           String   // havale | ziraat | garanti | isbank | manual
+  bankAccount      String?  // ödeme yapılacak hesap
+  bankName         String?
+  binIin           String?  // merchant Vergi No
+  status           String   @default("pending") // pending | processing | completed | failed | cancelled
+  reference        String?  // banka transfer referansı
+  failureReason    String?
+  processedAt      DateTime?
+  processedBy      String?  // admin who triggered payment
+  createdAt        DateTime @default(now())
+
+  merchantObj  Merchant     @relation(fields: [merchantId], references: [id])
+  settlements  Settlement[]
+  ledgerEntry  LedgerEntry?
+
+  @@unique([batchDate, merchantId]) // her gün her merchant için tek batch
+}
+
+// ══════════════════════════════════════════════════════
+// LEDGER (Cari Hesap — Merchant & Admin muhasebe kaydı)
+// Hem QR kullanımları hem ödemeler otomatik işlenir
+// ══════════════════════════════════════════════════════
+
+model LedgerEntry {
+  id             String   @id @default(uuid())
+  merchantId     String
+  type           String   // debit_redemption | debit_token_payment | credit_batch_payment | credit_adjustment
+  description    String   // "Hediye çeki kullanımı: SYY-XXXX" veya "Batch ödeme: 2026-03-16"
+  debit          Int      @default(0)  // VITA'nın merchant'a borcu (artış)
+  credit         Int      @default(0)  // Merchant'a yapılan ödeme (azalış)
+  balance        Int      // cari bakiye (VITA'nın merchant'a borcu)
+  relatedId      String?  // settlementId, batchId, tokenRedemptionId
+  batchId        String?  @unique // eğer batch ödeme ise
+  createdAt      DateTime @default(now())
+
+  merchant Merchant          @relation(fields: [merchantId], references: [id])
+  batch    BatchSettlement?  @relation(fields: [batchId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// TOKEN ECONOMY
+// ══════════════════════════════════════════════════════
+
+model TokenTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Int      // positive = earned, negative = spent
+  type        String   // earn_referral | earn_cashback | earn_activity | earn_promo | spend_purchase | spend_cashout
+  source      String   // description of source
+  isCashable  Boolean  @default(false)
+  balanceAfter Int     // user's balance after this transaction
+  relatedId   String?  // giftCardId, referralId, etc.
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// REFERRAL SYSTEM v2
+// Activation-based rewards + Mystery Box + Leaderboard
+// ══════════════════════════════════════════════════════
+
+model Referral {
+  id              String   @id @default(uuid())
+  referrerId      String
+  referredId      String
+  status          String   @default("pending") // pending | downloaded | activated
+  tokensAwarded   Int      @default(0)
+  firstTaskName   String?  // name of the first completed task
+  influencerCode  String?  // if came via influencer code
+  createdAt       DateTime @default(now())
+  activatedAt     DateTime?
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referred User @relation("Referred", fields: [referredId], references: [id])
+}
+
+model MysteryBoxReward {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // token | gift_cert | premium_task | boost
+  title     String   // "500 Token"
+  value     Int      // numeric value (tokens, %, days)
+  rarity    String   // common | rare | epic | legendary
+  referralId String? // which referral triggered this box
+  claimedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model LeaderboardEntry {
+  id              String   @id @default(uuid())
+  userId          String
+  weekStart       DateTime // start of the week
+  inviteCount     Int      @default(0)
+  activationCount Int      @default(0)
+  tokensEarned    Int      @default(0)
+  rank            Int      @default(0)
+  prizeAwarded    String?  // prize description if top 3
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, weekStart])
+}
+
+model InfluencerCode {
+  id              String   @id @default(uuid())
+  code            String   @unique // "HADISE2026"
+  influencerName  String   // "Hadise"
+  platform        String?  // instagram | tiktok | youtube
+  bonusMultiplier Float    @default(1.0) // 1.5x, 2x etc.
+  specialReward   String?  // "1 Ay Premium Üyelik"
+  usageCount      Int      @default(0)
+  maxUsage        Int?     // null = unlimited
+  isActive        Boolean  @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+}
+
+// ══════════════════════════════════════════════════════
+// TOKEN CASHOUT (DISABLED — lisans gerektirir)
+// Model korunuyor ama endpoint devre dışı
+// ══════════════════════════════════════════════════════
+
+model TokenCashout {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Int
+  feePercent  Float
+  feeAmount   Int
+  netTokens   Int
+  tengeAmount Int
+  method      String
+  account     String
+  status      String   @default("pending")
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+// ══════════════════════════════════════════════════════
+// TOKEN TOP-UP (DISABLED — token satın alınamaz)
+// Model korunuyor ama endpoint devre dışı
+// ══════════════════════════════════════════════════════
+
+model TopUpOrder {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Int
+  tokens      Int
+  method      String
+  reference   String?
+  senderPhone String?
+  status      String   @default("pending")
+  confirmedAt DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// TOKEN QR PAYMENT (Partnerde token harcama)
+// Kullanıcı QR gösterir → merchant tarar → token düşer
+// VITA merchant'a komisyon sonrası ödeme borçlanır
+// ══════════════════════════════════════════════════════
+
+model TokenRedemption {
+  id             String   @id @default(uuid())
+  userId         String
+  merchantId     String
+  branchId       String?
+  amount         Int      // token miktarı (= tenge değeri)
+  commissionRate Float    // komisyon oranı (ör. 0.15 = 15%)
+  commissionAmount Int    // VITA'nın komisyonu
+  netAmount      Int      // merchant'a ödenecek tutar
+  status         String   @default("pending") // pending | completed | settled | failed
+  qrCode         String?  // ödeme QR kodu
+  verifiedBy     String?  // merchant user who confirmed
+  settlementId   String?  // bağlı settlement kaydı
+  settledAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// GIFT CARD → TOKEN CONVERSION (0% komisyon)
+// Hediye çekini tokenlere çevir, parça parça kullan
+// ══════════════════════════════════════════════════════
+
+model GiftCardConversion {
+  id          String   @id @default(uuid())
+  userId      String
+  giftCardId  String   @unique // her çek sadece 1 kez dönüştürülebilir
+  amount      Int      // çek değeri = token miktarı (1:1, 0% komisyon)
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  giftCard GiftCard @relation(fields: [giftCardId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// GİZLİ MÜŞTERI — Mystery Shopper Task Payment
+// İşletme VITA'ya öder → kullanıcı token kazanır
+// ══════════════════════════════════════════════════════
+
+model MysteryTask {
+  id               String   @id @default(uuid())
+  merchantId       String
+  title            String   // "Hizmet Kontrolü"
+  description      String?  // görev detayları
+  businessPayment  Int      // işletmenin VITA'ya ödediği tutar (ör. 5000₸)
+  userReward       Int      // kullanıcıya verilen token (ör. 4000)
+  vitaMargin       Int      // VITA'nın marjı (ör. 1000₸)
+  maxCompletions   Int      @default(1) // kaç kez tamamlanabilir
+  completionCount  Int      @default(0)
+  category         String   @default("service") // service | quality | speed | cleanliness
+  isActive         Boolean  @default(true)
+  expiresAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  merchant    Merchant              @relation(fields: [merchantId], references: [id])
+  completions MysteryTaskCompletion[]
+}
+
+model MysteryTaskCompletion {
+  id          String   @id @default(uuid())
+  taskId      String
+  userId      String
+  rating      Int?     // 1-5 puanlama
+  comment     String?  // kullanıcı yorumu
+  photoUrl    String?  // kanıt fotoğrafı
+  tokensAwarded Int    // verilen token miktarı
+  status      String   @default("pending") // pending | approved | rejected
+  approvedBy  String?  // admin/merchant who approved
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  task MysteryTask @relation(fields: [taskId], references: [id])
+  user User        @relation(fields: [userId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// GROUP GIFTS (Grupovoy Podaron — Toplu Hediye Sertifikası)
+// Bir organizatör oluşturur, arkadaşlar katılır, herkes payını öder
+// Toplam tutar karşılandığında sertifika otomatik gönderilir
+// ══════════════════════════════════════════════════════
+
+model GroupGift {
+  id              String   @id @default(uuid())
+  organizerId     String   // grubu oluşturan kişi
+  merchantId      String?  // null = VITA universal
+  merchantName    String   // görüntüleme için
+  recipientName   String   // "Ayşe"
+  recipientAvatar String?  // emoji/avatar
+  recipientPhone  String?  // sertifika gönderilecek telefon
+  eventType       String   // "Doğum Günü", "Anneler Günü" vb.
+  eventDate       DateTime // etkinlik tarihi
+  targetAmount    Int      // hedef tutar (₺)
+  collectedAmount Int      @default(0) // toplanan tutar
+  status          String   @default("collecting") // collecting | completed | sent | cancelled
+  giftCardId      String?  // oluşturulan sertifikanın id'si (completed olunca)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organizer    User               @relation(fields: [organizerId], references: [id])
+  participants GroupParticipant[]
+}
+
+model GroupParticipant {
+  id          String   @id @default(uuid())
+  groupId     String
+  userId      String?  // kayıtlı kullanıcı ise
+  name        String   // "Ahmet"
+  avatar      String?  // harf/emoji
+  color       String   @default("#6366F1")
+  amount      Int      // bu kişinin payı (₺)
+  paid        Boolean  @default(false)
+  paidAt      DateTime?
+  isOrganizer Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  group GroupGift @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIFICATIONS (Bildirimler)
+// Genel bildirim sistemi — farklı türlerde bildirimler
+// ══════════════════════════════════════════════════════
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // cert_convert_reminder | new_partner | promo | token_earned | referral | system | task_available
+  title       String   // "Sertifikanız sizi bekliyor!"
+  body        String   // "₺5.000 değerinde sertifikanız var — tokenlere dönüştürün"
+  icon        String?  // emoji: "🎫", "🪙", "🎉"
+  actionType  String?  // navigate | deeplink | url | none
+  actionTarget String? // "/wallet", "/gift-detail", "https://..."
+  relatedId   String?  // giftCardId, merchantId, taskId vb.
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+// ══════════════════════════════════════════════════════
+// NEARBY ME — Location-based social discovery
+// Real-time location sharing + friend discovery
+// ══════════════════════════════════════════════════════
+
+model UserLocation {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  latitude  Float
+  longitude Float
+  intent    String?  // networking | sohbet | aktivite | etc.
+  isActive  Boolean  @default(true)
+  venueId   String?
+  updatedAt DateTime @updatedAt
+  user      User     @relation("UserLocation", fields: [userId], references: [id])
+}
+
+model NearbyMatch {
+  id          String   @id @default(uuid())
+  user1Id     String
+  user2Id     String
+  initiatorId String
+  status      String   @default("pending") // pending | accepted | rejected
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user1       User     @relation("NearbyMatchUser1", fields: [user1Id], references: [id])
+  user2       User     @relation("NearbyMatchUser2", fields: [user2Id], references: [id])
+  messages    NearbyMessage[]
+}
+
+model NearbyMessage {
+  id        String   @id @default(uuid())
+  matchId   String
+  senderId  String
+  text      String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+  match     NearbyMatch @relation(fields: [matchId], references: [id])
+  sender    User     @relation("NearbyMessageSender", fields: [senderId], references: [id])
+}
+
+// ══════════════════════════════════════════════════════
+// VITA JOBS — Gig Economy / Micro-task Marketplace
+// Token payments with escrow for employer budget
+// ══════════════════════════════════════════════════════
+
+model JobCategory {
+  id    String @id @default(uuid())
+  name  String
+  emoji String
+  color String
+  jobs  Job[]
+}
+
+model Job {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  categoryId  String
+  category    JobCategory @relation(fields: [categoryId], references: [id])
+  employerId  String
+  employer    User     @relation("JobsPosted", fields: [employerId], references: [id])
+  budget      Int
+  budgetType  String   @default("fixed")
+  latitude    Float?
+  longitude   Float?
+  address     String?
+  cityId      String?
+  status      String   @default("open")
+  deadline    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  applications JobApplication[]
+  ratings     JobRating[]
+}
+
+model JobApplication {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id])
+  applicantId String
+  applicant   User     @relation("JobApplications", fields: [applicantId], references: [id])
+  message     String?
+  priceOffer  Int?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model JobRating {
+  id        String   @id @default(uuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  raterId   String
+  ratedId   String
+  rater     User     @relation("JobRatingsGiven", fields: [raterId], references: [id])
+  rated     User     @relation("JobRatingsReceived", fields: [ratedId], references: [id])
+  score     Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
