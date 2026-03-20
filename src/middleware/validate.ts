@@ -36,7 +36,7 @@ function validateBody(body: any, schema: ValidationSchema): ValidationError[] {
     if (rule.required && (value === undefined || value === null || value === '')) {
       errors.push({
         field,
-        message: rule.message || `${field} обязательно`,
+        message: rule.message || `${field} zorunludur`,
       });
       continue;
     }
@@ -48,59 +48,59 @@ function validateBody(body: any, schema: ValidationSchema): ValidationError[] {
     switch (rule.type) {
       case 'string':
         if (typeof value !== 'string') {
-          errors.push({ field, message: `${field} должен быть строкой` });
+          errors.push({ field, message: `${field} metin olmalıdır` });
           continue;
         }
         if (rule.min && value.length < rule.min) {
-          errors.push({ field, message: `${field} минимум ${rule.min} символов` });
+          errors.push({ field, message: `${field} en az ${rule.min} karakter olmalıdır` });
         }
         if (rule.max && value.length > rule.max) {
-          errors.push({ field, message: `${field} максимум ${rule.max} символов` });
+          errors.push({ field, message: `${field} en fazla ${rule.max} karakter olmalıdır` });
         }
         if (rule.pattern && !rule.pattern.test(value)) {
-          errors.push({ field, message: rule.message || `${field} имеет неверный формат` });
+          errors.push({ field, message: rule.message || `${field} geçersiz formatta` });
         }
         if (rule.enum && !rule.enum.includes(value)) {
-          errors.push({ field, message: `${field} должен быть одним из: ${rule.enum.join(', ')}` });
+          errors.push({ field, message: `${field} şunlardan biri olmalıdır: ${rule.enum.join(', ')}` });
         }
         break;
 
       case 'number':
         const num = typeof value === 'string' ? parseFloat(value) : value;
         if (typeof num !== 'number' || isNaN(num)) {
-          errors.push({ field, message: `${field} должен быть числом` });
+          errors.push({ field, message: `${field} sayı olmalıdır` });
           continue;
         }
         if (rule.min !== undefined && num < rule.min) {
-          errors.push({ field, message: `${field} минимум ${rule.min}` });
+          errors.push({ field, message: `${field} en az ${rule.min} olmalıdır` });
         }
         if (rule.max !== undefined && num > rule.max) {
-          errors.push({ field, message: `${field} максимум ${rule.max}` });
+          errors.push({ field, message: `${field} en fazla ${rule.max} olmalıdır` });
         }
         break;
 
       case 'boolean':
         if (typeof value !== 'boolean') {
-          errors.push({ field, message: `${field} должен быть true/false` });
+          errors.push({ field, message: `${field} true/false olmalıdır` });
         }
         break;
 
       case 'email':
         if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errors.push({ field, message: 'Неверный формат email' });
+          errors.push({ field, message: 'Geçersiz e-posta formatı' });
         }
         break;
 
       case 'phone':
         if (typeof value !== 'string' || !/^\+?[0-9]{10,15}$/.test(value.replace(/[\s()-]/g, ''))) {
-          errors.push({ field, message: 'Неверный формат телефона' });
+          errors.push({ field, message: 'Geçersiz telefon numarası formatı' });
         }
         break;
 
       case 'date':
         const d = new Date(value);
         if (isNaN(d.getTime())) {
-          errors.push({ field, message: `${field} — неверная дата` });
+          errors.push({ field, message: `${field} geçersiz tarih` });
         }
         break;
     }
@@ -115,7 +115,7 @@ export function validate(schema: ValidationSchema) {
     const errors = validateBody(req.body, schema);
     if (errors.length > 0) {
       return res.status(400).json({
-        error: 'Ошибка валидации',
+        error: 'Doğrulama hatası',
         details: errors,
       });
     }
@@ -129,21 +129,21 @@ export function validate(schema: ValidationSchema) {
 
 // Auth: Register
 export const registerSchema: ValidationSchema = {
-  phone: { type: 'phone', required: true, message: 'Укажите корректный номер телефона' },
-  name: { type: 'string', required: true, min: 2, max: 100, message: 'Имя от 2 до 100 символов' },
+  phone: { type: 'phone', required: true, message: 'Geçerli bir telefon numarası girin' },
+  name: { type: 'string', required: true, min: 2, max: 100, message: 'Ad 2 ile 100 karakter arasında olmalıdır' },
   email: { type: 'email', required: false },
-  password: { type: 'string', required: false, min: 6, max: 100, message: 'Пароль минимум 6 символов' },
+  password: { type: 'string', required: false, min: 6, max: 100, message: 'Şifre en az 6 karakter olmalıdır' },
   gender: { type: 'string', required: false, enum: ['male', 'female', 'other'] },
 };
 
 // Auth: Login
 export const loginSchema: ValidationSchema = {
-  phone: { type: 'phone', required: true, message: 'Укажите номер телефона' },
+  phone: { type: 'phone', required: true, message: 'Telefon numarasını girin' },
 };
 
 // Gift Card: Purchase
 export const purchaseGiftCardSchema: ValidationSchema = {
-  amount: { type: 'number', required: false, min: 1000, max: 500000, message: 'Сумма от ₸1,000 до ₸500,000' },
+  amount: { type: 'number', required: false, min: 10, max: 10000, message: 'Tutar ₺10 ile ₺10.000 arasında olmalıdır' },
   templateId: { type: 'string', required: false },
   recipientPhone: { type: 'phone', required: false },
   message: { type: 'string', required: false, max: 500 },
@@ -151,18 +151,18 @@ export const purchaseGiftCardSchema: ValidationSchema = {
 
 // Token: QR Pay Generate
 export const tokenQrPaySchema: ValidationSchema = {
-  amount: { type: 'number', required: true, min: 1, max: 1000000, message: 'Сумма от 1 до 1,000,000 токенов' },
-  merchantId: { type: 'string', required: true, message: 'merchantId обязателен' },
+  amount: { type: 'number', required: true, min: 1, max: 1000000, message: '1 ile 1.000.000 jeton arasında olmalıdır' },
+  merchantId: { type: 'string', required: true, message: 'merchantId zorunludur' },
 };
 
 // Token: QR Pay Confirm
 export const tokenQrConfirmSchema: ValidationSchema = {
-  qrPayload: { type: 'string', required: true, message: 'QR-код обязателен' },
+  qrPayload: { type: 'string', required: true, message: 'QR kod zorunludur' },
 };
 
 // Redeem: Scan
 export const redeemScanSchema: ValidationSchema = {
-  code: { type: 'string', required: true, min: 5, message: 'Код сертификата обязателен' },
+  code: { type: 'string', required: true, min: 5, message: 'Sertifika kodu zorunludur' },
 };
 
 // Redeem: Confirm
@@ -173,7 +173,7 @@ export const redeemConfirmSchema: ValidationSchema = {
 
 // Token: Convert Card
 export const convertCardSchema: ValidationSchema = {
-  giftCardId: { type: 'string', required: true, message: 'giftCardId обязателен' },
+  giftCardId: { type: 'string', required: true, message: 'giftCardId zorunludur' },
 };
 
 // Merchant: Register
@@ -185,12 +185,12 @@ export const merchantRegisterSchema: ValidationSchema = {
   ownerPassword: { type: 'string', required: true, min: 6 },
   bankAccount: { type: 'string', required: true, min: 5 },
   bankName: { type: 'string', required: true },
-  binIin: { type: 'string', required: true, min: 10, max: 12, message: 'БИН/ИИН должен быть 10-12 символов' },
+  binIin: { type: 'string', required: true, min: 10, max: 12, message: 'Vergi No 10-12 karakter olmalıdır' },
 };
 
 // Commission Update
 export const commissionSchema: ValidationSchema = {
-  commissionRate: { type: 'number', required: true, min: 0, max: 0.5, message: 'Комиссия от 0% до 50%' },
+  commissionRate: { type: 'number', required: true, min: 0, max: 0.5, message: 'Komisyon %0 ile %50 arasında olmalıdır' },
 };
 
 // Notification: Send
@@ -209,7 +209,7 @@ export const notificationBroadcastSchema: ValidationSchema = {
 
 // Connection: Request
 export const connectionRequestSchema: ValidationSchema = {
-  phone: { type: 'phone', required: true, message: 'Укажите номер телефона друга' },
+  phone: { type: 'phone', required: true, message: 'Arkadaşın telefon numarasını girin' },
   nickname: { type: 'string', required: false, max: 50 },
 };
 
