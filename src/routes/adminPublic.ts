@@ -15,13 +15,42 @@ adminPublicRoutes.get('/dashboard', async (_req: Request, res: Response) => {
       prisma.merchant.count({ where: { approvalStatus: 'approved' } }),
       prisma.giftCard.count(),
       prisma.settlement.aggregate({
-        where: { status: 'completed' },
-        _sum: { commissionAmount: true, totalAmount: true },
+        _sum: { commissionAmount: true, totalAmount: true, netAmount: true },
+        _count: true,
       }),
       prisma.merchant.count({ where: { approvalStatus: 'pending' } }),
     ]);
 
     const redeemed = await prisma.giftCard.count({ where: { status: 'redeemed' } });
+
+    // Token dolaşım — tüm kullanıcıların token bakiyesi toplamı
+    const tokenCirculation = await prisma.user.aggregate({ _sum: { tokenBalance: true } });
+
+    // NearbyMe aktif kullanıcı sayısı
+    const nearbyActive = await (prisma as any).userLocation.count({ where: { isActive: true } });
+
+    // Günlük aktif kullanıcı — bugün token işlemi yapanlar
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(todayStart); weekStart.setDate(weekStart.getDate() - 7);
+
+    const dailyActiveTokenTx = await prisma.tokenTransaction.findMany({
+      where: { createdAt: { gte: todayStart } },
+      select: { userId: true },
+      distinct: ['userId'],
+    });
+
+    const weeklyActiveTokenTx = await prisma.tokenTransaction.findMany({
+      where: { createdAt: { gte: weekStart } },
+      select: { userId: true },
+      distinct: ['userId'],
+    });
+
+    // Aylık platform geliri (komisyon)
+    const monthStart = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1);
+    const monthlyRevenue = await prisma.settlement.aggregate({
+      where: { createdAt: { gte: monthStart } },
+      _sum: { commissionAmount: true },
+    });
 
     res.json({
       totalUsers: users,
@@ -31,6 +60,13 @@ adminPublicRoutes.get('/dashboard', async (_req: Request, res: Response) => {
       redeemedCards: redeemed,
       totalRevenue: revenue._sum.totalAmount || 0,
       totalCommission: revenue._sum.commissionAmount || 0,
+      totalNet: revenue._sum.netAmount || 0,
+      settlementCount: revenue._count,
+      totalTokensInCirculation: tokenCirculation._sum.tokenBalance || 0,
+      nearbyActiveUsers: nearbyActive || 0,
+      dailyActiveUsers: dailyActiveTokenTx.length,
+      weeklyActiveUsers: weeklyActiveTokenTx.length,
+      monthlyRevenue: monthlyRevenue._sum.commissionAmount || 0,
     });
   } catch (err) {
     console.error('Dashboard stats error:', err);
@@ -423,7 +459,7 @@ adminPublicRoutes.get('/notifications/recent', async (req: Request, res: Respons
   }
 });
 
-// ── Commissions ──
+// ── Commissions (VITA's earnings) ──
 adminPublicRoutes.get('/commissions', async (_req: Request, res: Response) => {
   try {
     const merchants = await prisma.merchant.findMany({
@@ -455,9 +491,149 @@ adminPublicRoutes.get('/commissions', async (_req: Request, res: Response) => {
       });
     }
 
-    res.json(commissionsData);
+    // Calculate stats
+    const totalEarned = commissionsData.reduce((sum, m) => sum + m.commissionEarned, 0);
+    const avgRate = merchants.length > 0
+      ? (merchants.reduce((sum, m) => sum + (m.commissionRate || 0), 0) / merchants.length)
+      : 0;
+    const maxRate = merchants.length > 0
+      ? Math.max(...merchants.map(m => m.commissionRate || 0))
+      : 0;
+
+    res.json({
+      commissions: commissionsData,
+      stats: {
+        totalEarned,
+        averageRate: avgRate,
+        maxRate,
+        merchantCount: merchants.length,
+      },
+    });
   } catch (err) {
     console.error('Commissions error:', err);
-    res.status(500).json({ error: 'Failed to load commissions', commissions: [] });
+    res.status(500).json({ error: 'Failed to load commissions', commissions: [], stats: {} });
+  }
+});
+
+// ── Batch Settlements ──
+adminPublicRoutes.get('/batch-settlements', async (_req: Request, res: Response) => {
+  try {
+    const batches = await (prisma as any).batchSettlement.findMany({
+      include: {
+        merchant: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    const totalBatches = batches.length;
+    const totalAmount = batches.reduce((sum: number, b: any) => sum + (b.totalNet || 0), 0);
+    const pendingBatches = batches.filter((b: any) => b.status === 'pending').length;
+
+    res.json({
+      batches,
+      stats: {
+        totalBatches,
+        totalAmount,
+        pendingBatches,
+      },
+    });
+  } catch (err) {
+    console.error('Batch settlements error:', err);
+    res.status(500).json({ error: 'Failed to load batch settlements', batches: [], stats: {} });
+  }
+});
+
+// ── NearbyMe detailed data (check-ins, matches, etc.) ──
+adminPublicRoutes.get('/nearby/details', async (_req: Request, res: Response) => {
+  try {
+    const [recentLocations, recentMatches] = await Promise.all([
+      (prisma as any).userLocation.findMany({
+        include: { user: { select: { id: true, name: true } } },
+        orderBy: { lastSeen: 'desc' },
+        take: 20,
+      }),
+      (prisma as any).nearbyMatch.findMany({
+        include: {
+          user1: { select: { id: true, name: true } },
+          user2: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+    ]);
+
+    res.json({
+      checkins: recentLocations,
+      matches: recentMatches,
+      activities: [],
+      moderation: [],
+    });
+  } catch (err) {
+    console.error('NearbyMe details error:', err);
+    res.status(500).json({
+      error: 'Failed to load nearby details',
+      checkins: [],
+      matches: [],
+      activities: [],
+      moderation: [],
+    });
+  }
+});
+
+// ── Mystery Tasks with completion stats ──
+adminPublicRoutes.get('/denetle/tasks/stats', async (_req: Request, res: Response) => {
+  try {
+    const [activeTasks, completedCompletions, pendingCompletions, approvedCompletions] = await Promise.all([
+      prisma.mysteryTask.count({ where: { isActive: true } }),
+      prisma.mysteryTaskCompletion.count({ where: { status: 'completed' } }),
+      prisma.mysteryTaskCompletion.count({ where: { status: 'pending' } }),
+      prisma.mysteryTaskCompletion.count({ where: { status: 'approved' } }),
+    ]);
+
+    const tasks = await prisma.mysteryTask.findMany({
+      where: { isActive: true },
+      include: {
+        merchant: { select: { name: true } },
+        _count: { select: { completions: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    res.json({
+      tasks,
+      stats: {
+        totalTasks: activeTasks,
+        completedCompletions,
+        pendingCompletions,
+        approvedCompletions,
+      },
+    });
+  } catch (err) {
+    console.error('Mystery tasks stats error:', err);
+    res.status(500).json({
+      error: 'Failed to load mystery tasks stats',
+      tasks: [],
+      stats: { totalTasks: 0, completedCompletions: 0, pendingCompletions: 0, approvedCompletions: 0 },
+    });
+  }
+});
+
+// ── Token transactions for table ──
+adminPublicRoutes.get('/analytics/tokens/transactions', async (req: Request, res: Response) => {
+  try {
+    const { limit = '50' } = req.query;
+
+    const transactions = await prisma.tokenTransaction.findMany({
+      include: { user: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit as string),
+    });
+
+    res.json(transactions);
+  } catch (err) {
+    console.error('Token transactions error:', err);
+    res.status(500).json({ error: 'Failed to load token transactions', transactions: [] });
   }
 });

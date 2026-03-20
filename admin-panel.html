@@ -1411,11 +1411,11 @@
     <button>🔍</button>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="all">Tümü (156)</button>
-    <button class="tab-btn" data-tab="pending">Bekleyen (8)</button>
-    <button class="tab-btn" data-tab="approved">Onaylı (142)</button>
-    <button class="tab-btn" data-tab="rejected">Reddedilmiş (6)</button>
+  <div class="tabs" id="merchant-tabs">
+    <button class="tab-btn active" onclick="filterMerchants('')">Tümü</button>
+    <button class="tab-btn" onclick="filterMerchants('pending')">Bekleyen</button>
+    <button class="tab-btn" onclick="filterMerchants('approved')">Onaylı</button>
+    <button class="tab-btn" onclick="filterMerchants('rejected')">Reddedilmiş</button>
   </div>
 
   <div class="table-card">
@@ -1459,12 +1459,12 @@
     <table id="users-table">
       <thead>
         <tr>
-          <th>VITA ID</th>
           <th>Ad Soyad</th>
           <th>Telefon</th>
-          <th>Şehir</th>
+          <th>E-posta</th>
+          <th>Referans Kodu</th>
           <th>Token Bakiye</th>
-          <th>Seviye</th>
+          <th>Kart Sayısı</th>
           <th>Kayıt Tarihi</th>
           <th>Durum</th>
         </tr>
@@ -1536,10 +1536,10 @@
     </div>
 
     <div class="stat-card">
-      <div class="stat-icon">⏰</div>
+      <div class="stat-icon">💰</div>
       <div class="stat-content">
-        <div class="stat-label">Süresi Dolmuş</div>
-        <div class="stat-value" id="stat-cards-expired">...</div>
+        <div class="stat-label">Toplam Değer</div>
+        <div class="stat-value" id="stat-cards-value">...</div>
       </div>
     </div>
   </div>
@@ -1575,32 +1575,24 @@
 <section id="section-settlements" class="section">
   <div class="section-header">
     <h2>Hesaplar</h2>
-    <div class="section-actions">
-      <button class="btn btn-secondary">Yeni Hesap</button>
-      <button class="btn btn-secondary">İhraç Et</button>
-    </div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">Toplam Tutar</div>
+      <div class="stat-label">VITA'nın Borcu</div>
       <div class="stat-value" id="stat-settlements-total">...</div>
-      <div class="stat-trend positive">↑ %12.5</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Tamamlanan</div>
+      <div class="stat-label">Aktif Hesaplar</div>
       <div class="stat-value" id="stat-settlements-completed">...</div>
-      <div class="stat-detail">75% tamamlanma oranı</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Bekleyen</div>
+      <div class="stat-label">Beklemede</div>
       <div class="stat-value" id="stat-settlements-pending">...</div>
-      <div class="stat-detail">18 işlem</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Başarısız</div>
+      <div class="stat-label">Bilgi Eksik</div>
       <div class="stat-value" id="stat-settlements-failed">...</div>
-      <div class="stat-trend negative">↓ %8.3</div>
     </div>
   </div>
 
@@ -1608,13 +1600,13 @@
     <table class="data-table" id="settlements-table">
       <thead>
         <tr>
-          <th>Hesap No</th>
+          <th>ID</th>
           <th>İş Ortağı</th>
-          <th>Brüt Tutar</th>
-          <th>Komisyon</th>
-          <th>Net Tutar</th>
+          <th>Borç Tutarı</th>
+          <th>Banka Hesabı</th>
+          <th>Banka Adı</th>
+          <th>Beklemede Batch</th>
           <th>Durum</th>
-          <th>Tarih</th>
           <th>İşlem</th>
         </tr>
       </thead>
@@ -1629,32 +1621,24 @@
 <section id="section-tokens" class="section">
   <div class="section-header">
     <h2>Jetonlar</h2>
-    <div class="section-actions">
-      <button class="btn btn-secondary">Jeton Dağıt</button>
-      <button class="btn btn-secondary">İstatistikler</button>
-    </div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Dolaşımdaki</div>
       <div class="stat-value" id="stat-tokens-circulation-alt">...</div>
-      <div class="stat-detail">Aktif kullanıcılar</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Bugün Kazanılan</div>
       <div class="stat-value" id="stat-tokens-earned">...</div>
-      <div class="stat-trend positive">↑ %18.2</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Bugün Harcanan</div>
       <div class="stat-value" id="stat-tokens-spent">...</div>
-      <div class="stat-trend negative">↓ %5.4</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Net Akış</div>
       <div class="stat-value" id="stat-tokens-net">...</div>
-      <div class="stat-detail">Günlük fark</div>
     </div>
   </div>
 
@@ -1749,12 +1733,6 @@
     </div>
   </div>
 
-  <div class="filter-tabs">
-    <button class="tab-btn active" data-filter="all">Tümü</button>
-    <button class="tab-btn" data-filter="earn">Kazanım</button>
-    <button class="tab-btn" data-filter="spend">Harcama</button>
-  </div>
-
   <div class="table-container">
     <table class="data-table" id="tokens-table">
       <thead>
@@ -1799,11 +1777,7 @@
 <!-- SECTION 9: KOMİSYONLAR (COMMISSIONS) -->
 <section id="section-commissions" class="section">
   <div class="section-header">
-    <h2>Komisyonlar</h2>
-    <div class="section-actions">
-      <button class="btn btn-secondary">Ödeme Yap</button>
-      <button class="btn btn-secondary">Rapor</button>
-    </div>
+    <h2>VITA Komisyon Geliri</h2>
   </div>
 
   <div class="summary-cards">
@@ -1827,14 +1801,12 @@
         <tr>
           <th>İş Ortağı</th>
           <th>Komisyon Oranı</th>
-          <th>Toplam Kazanılan</th>
-          <th>Bekleyen</th>
-          <th>Ödenen</th>
-          <th>İşlem</th>
+          <th>İşlem Hacmi</th>
+          <th>Komisyon Geliri</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
+        <tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
       </tbody>
     </table>
   </div>
@@ -1844,38 +1816,31 @@
 <section id="section-batch" class="section">
   <div class="section-header">
     <h2>Toplu Ödemeler</h2>
-    <div class="section-actions">
-      <button class="btn btn-accent">Toplu Ödeme Hazırla</button>
-      <button class="btn btn-success">Toplu Ödeme Çalıştır</button>
-    </div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">Bugünkü Batch</div>
-      <div class="stat-value" id="stat-commissions-batch">...</div>
-      <div class="stat-detail">İşlem kuyruğunda</div>
+      <div class="stat-label">Toplam Batch</div>
+      <div class="stat-value" id="stat-batch-count">...</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Toplam Tutar</div>
-      <div class="stat-value" id="stat-commissions-total">...</div>
-      <div class="stat-detail">18 işlemde</div>
+      <div class="stat-value" id="stat-batch-total">...</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Bekleyen İş Ortağı</div>
-      <div class="stat-value" id="stat-commissions-pending">...</div>
-      <div class="stat-detail">Ödeme bekliyor</div>
+      <div class="stat-label">Beklemede</div>
+      <div class="stat-value" id="stat-batch-pending">...</div>
     </div>
   </div>
 
   <div class="table-container">
-    <table class="data-table">
+    <table class="data-table" id="batch-settlements-table">
       <thead>
         <tr>
           <th>Batch ID</th>
           <th>İş Ortağı</th>
           <th>Tutar</th>
-          <th>Hesap Sayısı</th>
+          <th>İşlem Sayısı</th>
           <th>Durum</th>
           <th>Tarih</th>
           <th>İşlem</th>
@@ -1902,22 +1867,18 @@
     <div class="stat-card">
       <div class="stat-label">Aktif Kullanıcı</div>
       <div class="stat-value" id="stat-nearby-active-users">...</div>
-      <div class="stat-trend positive">↑ %23.4</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Bugün Check-in</div>
+      <div class="stat-label">Check-in'ler</div>
       <div class="stat-value" id="stat-nearby-checkins">...</div>
-      <div class="stat-detail">Ortalama 2.5 check-in/kullanıcı</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Eşleşmeler</div>
       <div class="stat-value" id="stat-nearby-matches">...</div>
-      <div class="stat-trend positive">↑ %15.2</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Aktif Aktivite</div>
+      <div class="stat-label">Aktiviteler</div>
       <div class="stat-value" id="stat-nearby-activities">...</div>
-      <div class="stat-detail">Bu haftaki etkinlikler</div>
     </div>
   </div>
 
@@ -2065,70 +2026,6 @@
     </table>
   </div>
 
-  <div class="review-section">
-    <h3>Örnek Denetim İncelemesi</h3>
-    <div class="review-card">
-      <div class="review-header">
-        <div class="review-info">
-          <h4>#GÖR-003 - Teknosa Kalite Kontrolü</h4>
-          <p>Denetçi: Fatih Çoban | Tarih: 14 Mar 2026</p>
-        </div>
-        <div class="review-rating">
-          <span class="rating">3.9/5 ⭐</span>
-        </div>
-      </div>
-
-      <div class="review-content">
-        <div class="photo-placeholder">
-          <div class="placeholder-box">[Foto: Mağaza İç Görünüşü]</div>
-        </div>
-
-        <div class="review-details">
-          <div class="rating-breakdown">
-            <h4>Yıldız Dağılımı</h4>
-            <div class="rating-item">
-              <span class="rating-label">Mağaza Temizliği</span>
-              <span class="rating-stars">⭐⭐⭐⭐⭐ (5)</span>
-            </div>
-            <div class="rating-item">
-              <span class="rating-label">Personel Davranışı</span>
-              <span class="rating-stars">⭐⭐⭐⭐ (4)</span>
-            </div>
-            <div class="rating-item">
-              <span class="rating-label">Ürün Kalitesi</span>
-              <span class="rating-stars">⭐⭐⭐⭐ (4)</span>
-            </div>
-            <div class="rating-item">
-              <span class="rating-label">Fiyat Uygunluğu</span>
-              <span class="rating-stars">⭐⭐⭐ (3)</span>
-            </div>
-            <div class="rating-item">
-              <span class="rating-label">Hizmet Hızı</span>
-              <span class="rating-stars">⭐⭐⭐⭐ (4)</span>
-            </div>
-          </div>
-
-          <div class="review-comments">
-            <h4>Denetçi Yorumları</h4>
-            <p>Mağaza genel olarak temiz ve iyi organize edilmiş. Personel çok yardımcı ve profesyonel. Ürünlerin kalitesi iyi fakat bazı eski ürünler rafta bulunmaktadır. Fiyatlandırma rakiplere göre biraz daha yüksek görülmektedir. Kasada bekleme süresi 5 dakikayı bulabilir.</p>
-            <p><strong>Geliştirme Önerileri:</strong></p>
-            <ul>
-              <li>Ürün rotasyonunu iyileştirmek</li>
-              <li>Kasa sayısını artırmak</li>
-              <li>Fiyat kontrolü yapmak</li>
-              <li>Periyodik temizlik takvimi</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="review-actions">
-        <button class="btn btn-success">Onayla</button>
-        <button class="btn btn-danger">Reddet</button>
-        <button class="btn btn-secondary">Yorum Yap</button>
-      </div>
-    </div>
-  </div>
 </section>
 
 <style>
@@ -2694,25 +2591,21 @@
       <div class="icon-box">📋</div>
       <div class="label">Aktif İlanlar</div>
       <div class="value" id="stat-jobs-active">...</div>
-      <div class="change">+8 bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">📝</div>
       <div class="label">Başvurular</div>
       <div class="value" id="stat-jobs-applications">...</div>
-      <div class="change">+34 bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">✓</div>
       <div class="label">Tamamlanan</div>
       <div class="value" id="stat-jobs-completed">...</div>
-      <div class="change">+25 bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">🪙</div>
       <div class="label">Dağıtılan Token</div>
       <div class="value" id="stat-jobs-tokens">...</div>
-      <div class="change">+5,200 bu ay</div>
     </div>
   </div>
 
@@ -2726,8 +2619,8 @@
         <tr>
           <th>İlan Başlığı</th>
           <th>İşveren</th>
-          <th>Bütçe (Token)</th>
-          <th>Başvuru</th>
+          <th>Bütçe</th>
+          <th>Başvuru Sayısı</th>
           <th>Durum</th>
           <th>Tarih</th>
           <th>İşlem</th>
@@ -2747,25 +2640,21 @@
       <div class="icon-box">👥</div>
       <div class="label">Toplam Davet</div>
       <div class="value" id="stat-referral-total">...</div>
-      <div class="change">+234 bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">✓</div>
       <div class="label">Aktive Olan</div>
       <div class="value" id="stat-referral-activated">...</div>
-      <div class="change">+145 bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">🪙</div>
       <div class="label">Dağıtılan Token</div>
       <div class="value" id="stat-referral-tokens">...</div>
-      <div class="change">+45K bu ay</div>
     </div>
     <div class="stat-card">
       <div class="icon-box">🎁</div>
       <div class="label">Mystery Box</div>
       <div class="value" id="stat-referral-boxes">...</div>
-      <div class="change">+67 bu ay</div>
     </div>
   </div>
 
@@ -2812,38 +2701,32 @@
 
   <div class="table-card">
     <h3>Lider Tablosu</h3>
-    <table>
+    <table id="referral-leaderboard-table">
       <thead>
         <tr>
           <th>Sıra</th>
-          <th>Kullanıcı</th>
-          <th>Davet</th>
-          <th>Aktive</th>
-          <th>Kazanılan Token</th>
-          <th>Kademe</th>
+          <th>Kullanıcı ID</th>
+          <th>Aktifleştirme Sayısı</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
+        <tr><td colspan="3" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="table-card">
     <h3>Influencer Kodları</h3>
-    <table>
+    <table id="referral-influencer-codes-table">
       <thead>
         <tr>
           <th>Kod</th>
-          <th>Influencer</th>
-          <th>Kullanım/Max</th>
-          <th>Bonus Çarpan</th>
-          <th>Bitiş Tarihi</th>
-          <th>Durum</th>
+          <th>Kullanım Sayısı</th>
+          <th>Oluşturma Tarihi</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
+        <tr><td colspan="3" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
       </tbody>
     </table>
   </div>
@@ -3437,8 +3320,8 @@ async function loadDashboard() {
     document.getElementById('stat-total-merchants').textContent = Number(data.totalMerchants).toLocaleString('tr-TR');
     document.getElementById('stat-total-cards').textContent = Number(data.totalCards).toLocaleString('tr-TR');
     document.getElementById('stat-total-revenue').textContent = fmtMoney(data.totalRevenue);
-    document.getElementById('stat-tokens-circulation').textContent = fmtTokens(data.totalTokensInCirculation || 1248500);
-    document.getElementById('stat-nearby-active').textContent = Number(data.nearbyActiveUsers || 3456).toLocaleString('tr-TR');
+    document.getElementById('stat-tokens-circulation').textContent = fmtTokens(data.totalTokensInCirculation);
+    document.getElementById('stat-nearby-active').textContent = Number(data.nearbyActiveUsers).toLocaleString('tr-TR');
 
     // Analytics stats
     const dau = document.getElementById('stat-analytics-dau');
@@ -3446,44 +3329,64 @@ async function loadDashboard() {
     const analyticsRevenue = document.getElementById('stat-analytics-revenue');
     const conversion = document.getElementById('stat-analytics-conversion');
 
-    if (dau) dau.textContent = Number(data.dailyActiveUsers || 3247).toLocaleString('tr-TR');
-    if (wau) wau.textContent = Number(data.weeklyActiveUsers || 8912).toLocaleString('tr-TR');
-    if (analyticsRevenue) analyticsRevenue.textContent = fmtMoney(data.monthlyRevenue || 18600000);
-    if (conversion) conversion.textContent = (data.conversionRate || 4.8).toFixed(1) + '%';
+    if (dau) dau.textContent = Number(data.dailyActiveUsers).toLocaleString('tr-TR');
+    if (wau) wau.textContent = Number(data.weeklyActiveUsers).toLocaleString('tr-TR');
+    if (analyticsRevenue) analyticsRevenue.textContent = fmtMoney(data.monthlyRevenue);
+    // Conversion rate = redeemed/total cards
+    const convRate = data.totalCards > 0 ? ((data.redeemedCards / data.totalCards) * 100) : 0;
+    if (conversion) conversion.textContent = convRate.toFixed(1) + '%';
   } catch (e) {
     console.error('Error loading dashboard:', e);
   }
 }
 
 // Merchants
-async function loadMerchants() {
+let allMerchants = [];
+async function loadMerchants(statusFilter) {
   try {
-    const res = await fetch('/api/admin-public/merchants');
-    const data = await res.json();
+    if (allMerchants.length === 0) {
+      const res = await fetch('/api/admin-public/merchants');
+      allMerchants = await res.json() || [];
+    }
+    const filtered = statusFilter ? allMerchants.filter(m => m.approvalStatus === statusFilter) : allMerchants;
     const tbody = document.querySelector('#merchants-table tbody');
     tbody.innerHTML = '';
 
-    (data || []).slice(0, 8).forEach(m => {
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+      return;
+    }
+
+    filtered.forEach(m => {
       const row = document.createElement('tr');
-      const branchCount = m._count?.branches || 0;
-      const status = m.status || 'approved';
+      const branchCount = m.branches?.length || m._count?.branches || 0;
+      const city = m.branches?.[0]?.city?.name || '-';
+      const status = m.approvalStatus || 'pending';
       const statusClass = status === 'pending' ? 'warning' : (status === 'approved' ? 'success' : 'danger');
       const statusText = status === 'pending' ? 'Beklemede' : (status === 'approved' ? 'Onaylı' : 'Reddedildi');
+      const commRate = m.commissionRate ? '%' + (m.commissionRate * 100).toFixed(0) : '-';
 
-      row.innerHTML = `
-        <td><strong>${m.name || 'N/A'}</strong></td>
-        <td>${m.category || '-'}</td>
-        <td>${m.city || '-'}</td>
-        <td>${branchCount}</td>
-        <td>${m.commissionRate ? '%' + m.commissionRate : '-'}</td>
-        <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td><button class="btn-small">Düzenle</button></td>
-      `;
+      row.innerHTML = '<td><strong>' + (m.name || '-') + '</strong></td><td>' + (m.category || '-') + '</td><td>' + city + '</td><td>' + branchCount + '</td><td>' + commRate + '</td><td><span class="badge ' + statusClass + '">' + statusText + '</span></td><td><button class="btn-small">Düzenle</button></td>';
       tbody.appendChild(row);
+    });
+
+    // Tab sayılarını güncelle
+    document.querySelectorAll('#merchant-tabs .tab-btn').forEach(btn => {
+      const text = btn.textContent.split('(')[0].trim();
+      const f = btn.getAttribute('onclick');
+      if (f.includes("''")) btn.textContent = text + ' (' + allMerchants.length + ')';
+      else if (f.includes("'pending'")) btn.textContent = text + ' (' + allMerchants.filter(m => m.approvalStatus === 'pending').length + ')';
+      else if (f.includes("'approved'")) btn.textContent = text + ' (' + allMerchants.filter(m => m.approvalStatus === 'approved').length + ')';
+      else if (f.includes("'rejected'")) btn.textContent = text + ' (' + allMerchants.filter(m => m.approvalStatus === 'rejected').length + ')';
     });
   } catch (e) {
     console.error('Error loading merchants:', e);
   }
+}
+function filterMerchants(status) {
+  document.querySelectorAll('#merchant-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  loadMerchants(status);
 }
 
 // Users
@@ -3494,18 +3397,10 @@ async function loadUsers() {
     const tbody = document.querySelector('#users-table tbody');
     tbody.innerHTML = '';
 
-    (data || []).slice(0, 10).forEach(u => {
+    (data || []).forEach(u => {
       const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><strong>${u.vitaId || 'N/A'}</strong></td>
-        <td>${u.fullName || '-'}</td>
-        <td>${u.phone || '-'}</td>
-        <td>${u.city || '-'}</td>
-        <td>${u.tokenBalance ? Number(u.tokenBalance).toLocaleString('tr-TR') + ' 🪙' : '-'}</td>
-        <td><span class="badge-level level-${u.level || 1}">Seviye ${u.level || 1}</span></td>
-        <td>${u.createdAt ? fmtDate(u.createdAt) : '-'}</td>
-        <td>${u.status ? statusBadge(u.status) : ''}</td>
-      `;
+      const cardCount = (u._count?.purchasedCards || 0) + (u._count?.receivedCards || 0);
+      row.innerHTML = '<td><strong>' + (u.name || 'İsimsiz') + '</strong></td><td>' + (u.phone || '-') + '</td><td>' + (u.email || '-') + '</td><td>' + (u.referralCode || '-') + '</td><td>' + Number(u.tokenBalance || 0).toLocaleString('tr-TR') + ' 🪙</td><td>' + cardCount + '</td><td>' + fmtDate(u.createdAt) + '</td><td><span class="badge success">Aktif</span></td>';
       tbody.appendChild(row);
     });
   } catch (e) {
@@ -3546,30 +3441,17 @@ async function loadGiftCards() {
     const res = await fetch('/api/admin-public/gift-cards');
     const data = await res.json();
     const stats = data.stats || {};
-    document.getElementById('stat-cards-total').textContent = Number(stats.total || 8234).toLocaleString('tr-TR');
-    document.getElementById('stat-cards-active').textContent = Number(stats.active || 3456).toLocaleString('tr-TR');
-    document.getElementById('stat-cards-redeemed').textContent = Number(stats.redeemed || 4123).toLocaleString('tr-TR');
-    document.getElementById('stat-cards-expired').textContent = Number(stats.expired || 655).toLocaleString('tr-TR');
+    document.getElementById('stat-cards-total').textContent = Number(stats.total).toLocaleString('tr-TR');
+    document.getElementById('stat-cards-active').textContent = Number(stats.active).toLocaleString('tr-TR');
+    document.getElementById('stat-cards-redeemed').textContent = Number(stats.redeemed).toLocaleString('tr-TR');
+    document.getElementById('stat-cards-value').textContent = fmtMoney(stats.totalValue);
 
     const tbody = document.querySelector('#cards-table tbody');
     tbody.innerHTML = '';
 
-    (data.cards || []).slice(0, 8).forEach(card => {
+    (data.cards || []).forEach(card => {
       const row = document.createElement('tr');
-      const cardStatus = card.status || 'active';
-      const statusBadgeClass = cardStatus === 'active' ? 'success' : (cardStatus === 'redeemed' ? 'info' : 'danger');
-      const statusText = cardStatus === 'active' ? 'Aktif' : (cardStatus === 'redeemed' ? 'Kullanıldı' : 'Süresi Dolmuş');
-
-      row.innerHTML = `
-        <td><code>${card.code || 'N/A'}</code></td>
-        <td>${card.buyerName || '-'}</td>
-        <td>${card.merchantName || '-'}</td>
-        <td>${fmtMoney(card.amount || 0)}</td>
-        <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
-        <td>${card.createdAt ? fmtDate(card.createdAt) : '-'}</td>
-        <td>${card.expiresAt ? fmtDate(card.expiresAt) : '-'}</td>
-        <td><button class="btn-small">Göster</button></td>
-      `;
+      row.innerHTML = '<td><code>' + (card.code || '-') + '</code></td><td>' + (card.buyer?.name || '-') + '</td><td>' + (card.merchant?.name || 'VITA Evrensel') + '</td><td>' + fmtMoney(card.amount) + '</td><td>' + statusBadge(card.status) + '</td><td>' + (card.isVitaCert ? 'Evrensel' : 'Şablon') + '</td><td>' + fmtDate(card.createdAt) + '</td><td>' + statusBadge(card.status) + '</td>';
       tbody.appendChild(row);
     });
   } catch (e) {
@@ -3583,34 +3465,35 @@ async function loadSettlements() {
     const res = await fetch('/api/admin-public/settlements');
     const data = await res.json();
 
-    const settlements = data || [];
-    const totalAmount = settlements.reduce((sum, s) => sum + (s.grossAmount || 0), 0);
-    const completedAmount = settlements.filter(s => s.status === 'completed').reduce((sum, s) => sum + (s.netAmount || 0), 0);
-    const pendingAmount = settlements.filter(s => s.status === 'pending').reduce((sum, s) => sum + (s.netAmount || 0), 0);
-    const failedAmount = settlements.filter(s => s.status === 'failed').reduce((sum, s) => sum + (s.netAmount || 0), 0);
+    const merchants = data.merchants || [];
+    const totalOwed = data.totalOwed || 0;
 
-    document.getElementById('stat-settlements-total').textContent = fmtMoney(totalAmount);
-    document.getElementById('stat-settlements-completed').textContent = fmtMoney(completedAmount);
-    document.getElementById('stat-settlements-pending').textContent = fmtMoney(pendingAmount);
-    document.getElementById('stat-settlements-failed').textContent = fmtMoney(failedAmount);
+    document.getElementById('stat-settlements-total').textContent = fmtMoney(totalOwed);
+    document.getElementById('stat-settlements-completed').textContent = fmtMoney(merchants.filter(m => m.balance > 0).reduce((sum, m) => sum + m.balance, 0));
+    document.getElementById('stat-settlements-pending').textContent = merchants.filter(m => m.pendingBatches > 0).length;
+    document.getElementById('stat-settlements-failed').textContent = fmtMoney(0);
 
     const tbody = document.querySelector('#settlements-table tbody');
     tbody.innerHTML = '';
 
-    settlements.slice(0, 8).forEach(s => {
+    if (merchants.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+      return;
+    }
+
+    merchants.slice(0, 8).forEach(m => {
       const row = document.createElement('tr');
-      const status = s.status || 'completed';
-      const statusClass = status === 'completed' ? 'success' : (status === 'pending' ? 'info' : 'danger');
-      const statusText = status === 'completed' ? 'Tamamlandı' : (status === 'pending' ? 'Bekliyor' : 'Başarısız');
+      const statusClass = m.merchant.hasBankInfo ? 'success' : 'warning';
+      const statusText = m.merchant.hasBankInfo ? 'Aktif' : 'Bilgi Eksik';
 
       row.innerHTML = `
-        <td>${s.id || '#HES-' + Math.random().toString().slice(2, 6)}</td>
-        <td>${s.merchantName || '-'}</td>
-        <td>${fmtMoney(s.grossAmount || 0)}</td>
-        <td>${fmtMoney(s.commission || 0)}</td>
-        <td>${fmtMoney(s.netAmount || 0)}</td>
+        <td>${m.merchant.id.substring(0, 8)}</td>
+        <td>${m.merchant.name || '-'}</td>
+        <td>${fmtMoney(m.balance || 0)}</td>
+        <td>${m.merchant.bankAccount || 'Belirtilmedi'}</td>
+        <td>${m.merchant.bankName || '-'}</td>
+        <td>${m.pendingBatches}</td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td>${s.createdAt ? fmtDate(s.createdAt) : '-'}</td>
         <td><button class="btn btn-sm btn-secondary">Detay</button></td>
       `;
       tbody.appendChild(row);
@@ -3626,44 +3509,97 @@ async function loadTokens() {
     const res = await fetch('/api/admin-public/analytics/tokens');
     const data = await res.json();
 
-    document.getElementById('stat-tokens-circulation-alt').textContent = fmtTokens(data.totalInCirculation || 1248500);
-    document.getElementById('stat-tokens-earned').textContent = '+' + fmtTokens(data.earnedToday || 12340);
-    document.getElementById('stat-tokens-spent').textContent = '-' + fmtTokens(data.spentToday || 8567);
-    document.getElementById('stat-tokens-net').textContent = '+' + fmtTokens((data.earnedToday || 12340) - (data.spentToday || 8567));
+    document.getElementById('stat-tokens-circulation-alt').textContent = fmtTokens(data.totalInCirculation);
+    document.getElementById('stat-tokens-earned').textContent = '+' + fmtTokens(data.earnedToday);
+    document.getElementById('stat-tokens-spent').textContent = '-' + fmtTokens(data.spentToday);
+    document.getElementById('stat-tokens-net').textContent = (data.earnedToday - data.spentToday >= 0 ? '+' : '') + fmtTokens(data.earnedToday - data.spentToday);
+
+    // Update bar charts with real data
+    const byType = data.byType || [];
+    if (byType.length > 0) {
+      const total = byType.reduce((sum, t) => sum + (t._sum?.amount || 0), 0);
+
+      // Update earn channels chart
+      const earnTypes = byType.filter(t => (t._sum?.amount || 0) > 0);
+      if (earnTypes.length > 0 && document.querySelector('.charts-grid .chart-container:first-child .bar-chart')) {
+        const earnChart = document.querySelector('.charts-grid .chart-container:first-child .bar-chart');
+        // Update existing bar items with calculated percentages
+        earnTypes.forEach((type, idx) => {
+          const barItem = earnChart.children[idx];
+          if (barItem) {
+            const percent = total > 0 ? ((type._sum?.amount || 0) / total) * 100 : 0;
+            const bar = barItem.querySelector('.bar');
+            const valueSpan = barItem.querySelector('.bar-value');
+            if (bar) bar.style.width = percent + '%';
+            if (valueSpan) valueSpan.textContent = '%' + percent.toFixed(0);
+          }
+        });
+      }
+    }
+
+    // Load token transactions for table
+    const txRes = await fetch('/api/admin-public/analytics/tokens/transactions');
+    const transactions = await txRes.json();
+
+    const tbody = document.querySelector('#tokens-table tbody');
+    if (tbody) {
+      tbody.innerHTML = '';
+
+      if ((transactions || []).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz veri yok</td></tr>';
+      } else {
+        (transactions || []).slice(0, 20).forEach(tx => {
+          const row = document.createElement('tr');
+          const typeMap = { refer: 'Referans', task: 'Denetim', daily: 'Günlük Bonus', game: 'Oyun', nearby: 'NearbyMe', cashback: 'Cashback', qr: 'QR Ödeme', gift: 'Hediye', premium: 'Premium', activity: 'Aktivite' };
+          const typeText = typeMap[tx.type] || tx.type || '-';
+          const typeClass = tx.amount > 0 ? 'success' : 'danger';
+
+          row.innerHTML = `
+            <td>${tx.user?.name || '-'}</td>
+            <td>${typeText}</td>
+            <td><span class="text-${typeClass}">${tx.amount > 0 ? '+' : ''}${fmtTokens(Math.abs(tx.amount || 0))}</span></td>
+            <td>${tx.source || '-'}</td>
+            <td>${tx.createdAt ? fmtDate(tx.createdAt) : '-'}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+    }
   } catch (e) {
     console.error('Error loading tokens:', e);
   }
 }
 
-// Commissions
+// Commissions (VITA's earnings)
 async function loadCommissions() {
   try {
     const res = await fetch('/api/admin-public/commissions');
     const data = await res.json();
 
-    const merchants = data.merchants || [];
-    const totalCommission = merchants.reduce((sum, m) => sum + (m.totalSettled || 0), 0);
-    const pendingCommission = merchants.reduce((sum, m) => sum + (m.pending || 0), 0);
-    const pendingMerchants = merchants.filter(m => (m.pending || 0) > 0).length;
-    const batchCount = data.batchCount || merchants.filter(m => (m.pending || 0) > 0).length;
+    const commissionsData = data.commissions || [];
+    const stats = data.stats || {};
 
-    document.getElementById('stat-commissions-total').textContent = fmtMoney(totalCommission);
-    document.getElementById('stat-commissions-pending').textContent = pendingMerchants;
-    document.getElementById('stat-commissions-batch').textContent = batchCount;
+    document.getElementById('stat-commission-total').textContent = fmtMoney(stats.totalEarned || 0);
+    document.getElementById('stat-commission-avg').textContent = '%' + ((stats.averageRate || 0) * 100).toFixed(1);
+    document.getElementById('stat-commission-max').textContent = '%' + ((stats.maxRate || 0) * 100).toFixed(1);
 
     const tbody = document.querySelector('#commissions-table tbody');
     if (tbody) {
       tbody.innerHTML = '';
 
-      merchants.slice(0, 8).forEach(m => {
+      if (commissionsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+        return;
+      }
+
+      commissionsData.slice(0, 8).forEach(m => {
+        const rate = (m.merchant.commissionRate || 0) * 100;
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${m.name || '-'}</td>
-          <td>${m.commissionRate ? '%' + m.commissionRate : '-'}</td>
-          <td>${fmtMoney(m.totalSettled || 0)}</td>
-          <td>${fmtMoney(m.pending || 0)}</td>
-          <td>${fmtMoney(m.totalSettled || 0)}</td>
-          <td><button class="btn btn-sm btn-secondary">Düzenle</button></td>
+          <td>${m.merchant.name || '-'}</td>
+          <td>%${rate.toFixed(1)}</td>
+          <td>${fmtMoney(m.settlementTotal || 0)}</td>
+          <td>${fmtMoney(m.commissionEarned || 0)}</td>
         `;
         tbody.appendChild(row);
       });
@@ -3673,16 +3609,113 @@ async function loadCommissions() {
   }
 }
 
+// Batch Settlements
+async function loadBatchSettlements() {
+  try {
+    const res = await fetch('/api/admin-public/batch-settlements');
+    const data = await res.json();
+
+    const batches = data.batches || [];
+    const stats = data.stats || {};
+
+    document.getElementById('stat-batch-count').textContent = stats.totalBatches;
+    document.getElementById('stat-batch-total').textContent = fmtMoney(stats.totalAmount || 0);
+    document.getElementById('stat-batch-pending').textContent = stats.pendingBatches;
+
+    const tbody = document.querySelector('#batch-settlements-table tbody');
+    if (tbody) {
+      tbody.innerHTML = '';
+
+      if (batches.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+        return;
+      }
+
+      batches.slice(0, 8).forEach(b => {
+        const row = document.createElement('tr');
+        const statusClass = b.status === 'completed' ? 'success' : (b.status === 'pending' ? 'warning' : 'danger');
+        const statusText = b.status === 'completed' ? 'Tamamlandı' : (b.status === 'pending' ? 'Beklemede' : 'Başarısız');
+
+        row.innerHTML = `
+          <td>${b.id.substring(0, 8)}</td>
+          <td>${b.merchant?.name || '-'}</td>
+          <td>${fmtMoney(b.totalNet || 0)}</td>
+          <td>${b.itemCount || 0}</td>
+          <td><span class="badge ${statusClass}">${statusText}</span></td>
+          <td>${b.createdAt ? fmtDate(b.createdAt) : '-'}</td>
+          <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  } catch (e) {
+    console.error('Error loading batch settlements:', e);
+  }
+}
+
 // Nearby
 async function loadNearby() {
   try {
     const res = await fetch('/api/admin-public/analytics/nearby');
     const data = await res.json();
 
-    document.getElementById('stat-nearby-active-users').textContent = Number(data.activeUsers || 3456).toLocaleString('tr-TR');
-    document.getElementById('stat-nearby-matches').textContent = Number(data.totalMatches || 234).toLocaleString('tr-TR');
-    document.getElementById('stat-nearby-checkins').textContent = Number(data.totalMatches * 3 || 892).toLocaleString('tr-TR');
-    document.getElementById('stat-nearby-activities').textContent = Number(data.acceptedMatches || 18).toLocaleString('tr-TR');
+    document.getElementById('stat-nearby-active-users').textContent = Number(data.activeUsers).toLocaleString('tr-TR');
+    document.getElementById('stat-nearby-matches').textContent = Number(data.totalMatches).toLocaleString('tr-TR');
+    document.getElementById('stat-nearby-checkins').textContent = Number(data.totalMessages).toLocaleString('tr-TR');
+    document.getElementById('stat-nearby-activities').textContent = Number(data.acceptedMatches).toLocaleString('tr-TR');
+
+    // Load detailed nearby data for tabs
+    try {
+      const detailRes = await fetch('/api/admin-public/nearby/details');
+      const detailData = await detailRes.json();
+
+      // Populate check-ins table
+      const checkinsTableBody = document.querySelector('#nearby-checkins-table tbody');
+      if (checkinsTableBody) {
+        checkinsTableBody.innerHTML = '';
+        if ((detailData.checkins || []).length === 0) {
+          checkinsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz veri yok</td></tr>';
+        } else {
+          (detailData.checkins || []).slice(0, 10).forEach(c => {
+            const row = document.createElement('tr');
+            const coords = `${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}`;
+            row.innerHTML = `
+              <td>${c.user?.name || '-'}</td>
+              <td>${coords}</td>
+              <td>-</td>
+              <td>-</td>
+              <td>${c.lastSeen ? fmtDate(c.lastSeen) : '-'}</td>
+            `;
+            checkinsTableBody.appendChild(row);
+          });
+        }
+      }
+
+      // Populate matches table
+      const matchesTableBody = document.querySelector('#nearby-matches-table tbody');
+      if (matchesTableBody) {
+        matchesTableBody.innerHTML = '';
+        if ((detailData.matches || []).length === 0) {
+          matchesTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz veri yok</td></tr>';
+        } else {
+          (detailData.matches || []).slice(0, 10).forEach(m => {
+            const row = document.createElement('tr');
+            const statusClass = m.status === 'accepted' ? 'success' : (m.status === 'pending' ? 'warning' : 'danger');
+            const statusText = m.status === 'accepted' ? 'Kabul Edildi' : (m.status === 'pending' ? 'Beklemede' : 'Reddedildi');
+            row.innerHTML = `
+              <td>${m.user1?.name || '-'}</td>
+              <td>${m.user2?.name || '-'}</td>
+              <td>-</td>
+              <td><span class="badge ${statusClass}">${statusText}</span></td>
+              <td>${m.createdAt ? fmtDate(m.createdAt) : '-'}</td>
+            `;
+            matchesTableBody.appendChild(row);
+          });
+        }
+      }
+    } catch (detailErr) {
+      console.error('Error loading nearby details:', detailErr);
+    }
   } catch (e) {
     console.error('Error loading nearby:', e);
   }
@@ -3691,38 +3724,39 @@ async function loadNearby() {
 // Denetle/Tasks
 async function loadDenetle() {
   try {
-    const tasksRes = await fetch('/api/admin-public/denetle/tasks');
-    const tasks = await tasksRes.json();
+    const res = await fetch('/api/admin-public/denetle/tasks/stats');
+    const data = await res.json();
 
-    const completionsRes = await fetch('/api/admin-public/denetle/completions?status=pending');
-    const completions = await completionsRes.json();
+    const tasks = data.tasks || [];
+    const stats = data.stats || {};
 
-    const totalTasks = tasks.length || 456;
-    const completedTasks = Math.floor(totalTasks * 0.68);
-    const pendingTasks = completions.length || 28;
-
-    document.getElementById('stat-denetle-total').textContent = totalTasks;
-    document.getElementById('stat-denetle-completed').textContent = completedTasks;
-    document.getElementById('stat-denetle-pending').textContent = pendingTasks;
-    document.getElementById('stat-denetle-approved').textContent = Math.floor(completedTasks * 0.9);
+    document.getElementById('stat-denetle-total').textContent = stats.totalTasks;
+    document.getElementById('stat-denetle-completed').textContent = stats.completedCompletions;
+    document.getElementById('stat-denetle-pending').textContent = stats.pendingCompletions;
+    document.getElementById('stat-denetle-approved').textContent = stats.approvedCompletions;
 
     const tbody = document.querySelector('#denetle-table tbody');
     tbody.innerHTML = '';
 
+    if (tasks.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+      return;
+    }
+
     (tasks || []).slice(0, 8).forEach((t, idx) => {
       const row = document.createElement('tr');
-      const statuses = ['Tamamlandı', 'Onaylandı', 'İncelemede', 'Onay Bekleniyor'];
-      const statusClass = ['success', 'success', 'info', 'warning'];
-      const statusIdx = idx % 4;
+      const completionCount = t._count?.completions || 0;
+      const statusClass = 'info';
+      const statusText = 'Aktif';
 
       row.innerHTML = `
         <td>#GÖR-${(idx + 1).toString().padStart(3, '0')}</td>
-        <td>${t.merchantName || 'Merchant ' + (idx + 1)}</td>
-        <td>${t.taskType || 'Kalite Kontrol'}</td>
-        <td>${t.reviewerName || 'Denetçi ' + (idx + 1)}</td>
-        <td>${(t.rating || 4 + Math.random()).toFixed(1)}/5</td>
-        <td>${fmtTokens(t.reward || 2500)}</td>
-        <td><span class="badge badge-${statusClass[statusIdx]}">${statuses[statusIdx]}</span></td>
+        <td>${t.merchant?.name || '-'}</td>
+        <td>${t.title || '-'}</td>
+        <td>${completionCount}</td>
+        <td>${t.tokenReward ? fmtTokens(t.tokenReward) : '-'}</td>
+        <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+        <td>${t.createdAt ? fmtDate(t.createdAt) : '-'}</td>
         <td><button class="btn btn-sm btn-secondary">Detay</button></td>
       `;
       tbody.appendChild(row);
@@ -3738,10 +3772,38 @@ async function loadJobs() {
     const res = await fetch('/api/admin-public/analytics/jobs');
     const data = await res.json();
 
-    document.getElementById('stat-jobs-active').textContent = Number(data.activeJobs || 67).toLocaleString('tr-TR');
-    document.getElementById('stat-jobs-applications').textContent = Number(data.totalApplications || 234).toLocaleString('tr-TR');
-    document.getElementById('stat-jobs-completed').textContent = Number(data.completedJobs || 189).toLocaleString('tr-TR');
-    document.getElementById('stat-jobs-tokens').textContent = fmtTokens(data.totalBudget || 45600);
+    document.getElementById('stat-jobs-active').textContent = Number(data.activeJobs).toLocaleString('tr-TR');
+    document.getElementById('stat-jobs-applications').textContent = Number(data.totalApplications).toLocaleString('tr-TR');
+    document.getElementById('stat-jobs-completed').textContent = Number(data.completedJobs).toLocaleString('tr-TR');
+    document.getElementById('stat-jobs-tokens').textContent = fmtTokens(data.totalBudget);
+
+    const tbody = document.querySelector('#jobs-table tbody');
+    if (tbody) {
+      tbody.innerHTML = '';
+
+      const jobs = data.recentJobs || [];
+      if (jobs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:20px;">Kayıt bulunamadı</td></tr>';
+        return;
+      }
+
+      jobs.slice(0, 8).forEach(j => {
+        const row = document.createElement('tr');
+        const statusClass = j.status === 'open' ? 'success' : (j.status === 'completed' ? 'info' : 'warning');
+        const statusText = j.status === 'open' ? 'Açık' : (j.status === 'completed' ? 'Tamamlandı' : 'İptal');
+
+        row.innerHTML = `
+          <td>${j.title || '-'}</td>
+          <td>${j.employer?.name || '-'}</td>
+          <td>${fmtMoney(j.budget)}</td>
+          <td>${j._count?.applications || 0}</td>
+          <td><span class="badge ${statusClass}">${statusText}</span></td>
+          <td>${j.createdAt ? fmtDate(j.createdAt) : '-'}</td>
+          <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
   } catch (e) {
     console.error('Error loading jobs:', e);
   }
@@ -3753,10 +3815,52 @@ async function loadReferral() {
     const res = await fetch('/api/admin-public/analytics/referral');
     const data = await res.json();
 
-    document.getElementById('stat-referral-total').textContent = Number(data.totalReferrals || 4567).toLocaleString('tr-TR');
-    document.getElementById('stat-referral-activated').textContent = Number(data.activated || 2890).toLocaleString('tr-TR');
-    document.getElementById('stat-referral-tokens').textContent = fmtTokens(data.totalTokensDistributed || 456000);
-    document.getElementById('stat-referral-boxes').textContent = Number(data.mysteryBoxesClaimed || 342).toLocaleString('tr-TR');
+    document.getElementById('stat-referral-total').textContent = Number(data.totalReferrals).toLocaleString('tr-TR');
+    document.getElementById('stat-referral-activated').textContent = Number(data.activated).toLocaleString('tr-TR');
+    document.getElementById('stat-referral-tokens').textContent = fmtTokens(data.totalTokensDistributed);
+    document.getElementById('stat-referral-boxes').textContent = Number(data.mysteryBoxesClaimed).toLocaleString('tr-TR');
+
+    // Populate leaderboard table
+    const leaderboardTbody = document.querySelector('#referral-leaderboard-table tbody');
+    if (leaderboardTbody) {
+      leaderboardTbody.innerHTML = '';
+
+      const leaderboard = data.leaderboard || [];
+      if (leaderboard.length === 0) {
+        leaderboardTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz veri yok</td></tr>';
+      } else {
+        leaderboard.slice(0, 10).forEach((entry, idx) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${entry.userId || '-'}</td>
+            <td>${entry.activationCount || 0}</td>
+          `;
+          leaderboardTbody.appendChild(row);
+        });
+      }
+    }
+
+    // Populate influencer codes table
+    const influencerTbody = document.querySelector('#referral-influencer-codes-table tbody');
+    if (influencerTbody) {
+      influencerTbody.innerHTML = '';
+
+      const codes = data.influencerCodes || [];
+      if (codes.length === 0) {
+        influencerTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz veri yok</td></tr>';
+      } else {
+        codes.slice(0, 10).forEach(code => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${code.code || '-'}</td>
+            <td>${code.usageCount || 0}</td>
+            <td>${code.createdAt ? fmtDate(code.createdAt) : '-'}</td>
+          `;
+          influencerTbody.appendChild(row);
+        });
+      }
+    }
   } catch (e) {
     console.error('Error loading referral:', e);
   }
@@ -3837,6 +3941,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettlements();
   loadTokens();
   loadCommissions();
+  loadBatchSettlements();
   loadNearby();
   loadDenetle();
   loadJobs();
