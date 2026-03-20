@@ -476,7 +476,7 @@ adminPublicRoutes.get('/commissions', async (_req: Request, res: Response) => {
 
     for (const merchant of merchants) {
       const settlements = await prisma.settlement.aggregate({
-        where: { merchantId: merchant.id, status: 'completed' },
+        where: { merchantId: merchant.id },
         _sum: { commissionAmount: true, totalAmount: true },
       });
 
@@ -635,5 +635,127 @@ adminPublicRoutes.get('/analytics/tokens/transactions', async (req: Request, res
   } catch (err) {
     console.error('Token transactions error:', err);
     res.status(500).json({ error: 'Failed to load token transactions', transactions: [] });
+  }
+});
+
+// ── Prepare Batch Settlement ──
+// Toplam bekleyen settlement'ları merchantId bazında batch'lere böler
+adminPublicRoutes.post('/prepare-batch', async (_req: Request, res: Response) => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // "2026-03-20"
+
+    // Henüz batch'e atanmamış pending settlement'ları bul
+    const pendingSettlements = await prisma.settlement.findMany({
+      where: { status: 'pending', batchId: null },
+      include: { merchant: { select: { id: true, name: true, bankAccount: true, bankName: true } } },
+    });
+
+    if (pendingSettlements.length === 0) {
+      res.json({ message: 'Bekleyen settlement yok', batchCount: 0 });
+      return;
+    }
+
+    // MerchantId bazında grupla
+    const byMerchant: Record<string, typeof pendingSettlements> = {};
+    for (const s of pendingSettlements) {
+      if (!byMerchant[s.merchantId]) byMerchant[s.merchantId] = [];
+      byMerchant[s.merchantId].push(s);
+    }
+
+    let batchCount = 0;
+    for (const [merchantId, settlements] of Object.entries(byMerchant)) {
+      const totalGross = settlements.reduce((sum: number, s: any) => sum + s.totalAmount, 0);
+      const totalCommission = settlements.reduce((sum: number, s: any) => sum + s.commissionAmount, 0);
+      const totalNet = settlements.reduce((sum: number, s: any) => sum + s.netAmount, 0);
+      const merchant = settlements[0].merchant;
+
+      // Batch oluştur
+      const batch = await (prisma as any).batchSettlement.create({
+        data: {
+          batchDate: today,
+          merchantId,
+          totalGross,
+          totalCommission,
+          totalNet,
+          itemCount: settlements.length,
+          method: 'havale',
+          bankAccount: merchant.bankAccount,
+          bankName: merchant.bankName,
+          status: 'pending',
+        },
+      });
+
+      // Settlement'ları batch'e ata
+      await prisma.settlement.updateMany({
+        where: { id: { in: settlements.map((s: any) => s.id) } },
+        data: { batchId: batch.id, status: 'batched' },
+      });
+
+      batchCount++;
+    }
+
+    res.json({ message: 'Batch hazırlandı', batchCount, totalSettlements: pendingSettlements.length });
+  } catch (err) {
+    console.error('Prepare batch error:', err);
+    res.status(500).json({ error: 'Batch hazırlama başarısız' });
+  }
+});
+
+// ── Run Batch Settlement ──
+// Bekleyen batch'leri "completed" olarak işaretle + ledger kaydı oluştur
+adminPublicRoutes.post('/run-batch', async (_req: Request, res: Response) => {
+  try {
+    const pendingBatches = await (prisma as any).batchSettlement.findMany({
+      where: { status: 'pending' },
+      include: { merchantObj: { select: { name: true } } },
+    });
+
+    if (pendingBatches.length === 0) {
+      res.json({ message: 'Bekleyen batch yok', processedCount: 0 });
+      return;
+    }
+
+    let processedCount = 0;
+    for (const batch of pendingBatches) {
+      // Batch'i completed yap
+      await (prisma as any).batchSettlement.update({
+        where: { id: batch.id },
+        data: { status: 'completed', processedAt: new Date(), processedBy: 'admin' },
+      });
+
+      // İlgili settlement'ları da completed yap
+      await prisma.settlement.updateMany({
+        where: { batchId: batch.id },
+        data: { status: 'completed', processedAt: new Date() },
+      });
+
+      // Ledger kaydı oluştur — merchant'a ödeme (credit)
+      const lastLedger = await (prisma as any).ledgerEntry.findFirst({
+        where: { merchantId: batch.merchantId },
+        orderBy: { createdAt: 'desc' },
+      });
+      const prevBalance = lastLedger?.balance || 0;
+      const newBalance = prevBalance - batch.totalNet; // ödeme yapıldı, borç azaldı
+
+      await (prisma as any).ledgerEntry.create({
+        data: {
+          merchantId: batch.merchantId,
+          type: 'credit_batch_payment',
+          description: `Batch ödeme: ${batch.batchDate} — ${batch.merchantObj?.name || 'Merchant'}`,
+          debit: 0,
+          credit: batch.totalNet,
+          balance: newBalance,
+          relatedId: batch.id,
+          batchId: batch.id,
+        },
+      });
+
+      processedCount++;
+    }
+
+    res.json({ message: 'Batch ödemeleri tamamlandı', processedCount });
+  } catch (err) {
+    console.error('Run batch error:', err);
+    res.status(500).json({ error: 'Batch çalıştırma başarısız' });
   }
 });

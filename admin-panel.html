@@ -1816,6 +1816,10 @@
 <section id="section-batch" class="section">
   <div class="section-header">
     <h2>Toplu Ödemeler</h2>
+    <div class="section-actions">
+      <button class="btn btn-accent" onclick="prepareBatch()">Toplu Ödeme Hazırla</button>
+      <button class="btn btn-success" onclick="runBatch()">Toplu Ödeme Çalıştır</button>
+    </div>
   </div>
 
   <div class="stats-grid">
@@ -1858,8 +1862,8 @@
   <div class="section-header">
     <h2>NearbyMe</h2>
     <div class="section-actions">
-      <button class="btn btn-secondary">İstatistikler</button>
-      <button class="btn btn-secondary">Raporla</button>
+      <button class="btn btn-secondary" onclick="showNearbyStats()">İstatistikler</button>
+      <button class="btn btn-secondary" onclick="exportNearbyReport()">Raporla</button>
     </div>
   </div>
 
@@ -1978,8 +1982,8 @@
   <div class="section-header">
     <h2>Gözlemle / Denetle</h2>
     <div class="section-actions">
-      <button class="btn btn-secondary">Yeni Görev</button>
-      <button class="btn btn-secondary">Raporla</button>
+      <button class="btn btn-accent" onclick="newDenetleTask()">Yeni Görev</button>
+      <button class="btn btn-secondary" onclick="exportDenetleReport()">Raporla</button>
     </div>
   </div>
 
@@ -1987,22 +1991,18 @@
     <div class="stat-card">
       <div class="stat-label">Toplam Görev</div>
       <div class="stat-value" id="stat-denetle-total">...</div>
-      <div class="stat-detail">Tümü dönemi</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Tamamlanan</div>
       <div class="stat-value" id="stat-denetle-completed">...</div>
-      <div class="stat-trend positive">68% tamamlanma</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">İnceleme Bekleyen</div>
       <div class="stat-value" id="stat-denetle-pending">...</div>
-      <div class="stat-detail">Onay bekleniyor</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Onaylanan</div>
       <div class="stat-value" id="stat-denetle-approved">...</div>
-      <div class="stat-trend positive">↑ %12.3</div>
     </div>
   </div>
 
@@ -2012,11 +2012,11 @@
         <tr>
           <th>Görev No</th>
           <th>İş Ortağı</th>
-          <th>Görev Türü</th>
-          <th>Denetçi</th>
-          <th>Puan</th>
+          <th>Görev Başlığı</th>
+          <th>Tamamlayan</th>
           <th>Token Ödül</th>
           <th>Durum</th>
+          <th>Tarih</th>
           <th>İşlem</th>
         </tr>
       </thead>
@@ -3494,7 +3494,7 @@ async function loadSettlements() {
         <td>${m.merchant.bankName || '-'}</td>
         <td>${m.pendingBatches}</td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+        <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(m.merchant.name || '').replace(/'/g, '')}', 'Borç: ${fmtMoney(m.balance || 0)}\\nBanka: ${m.merchant.bankName || '-'}\\nHesap: ${m.merchant.bankAccount || 'Belirtilmedi'}\\nBekleyen Batch: ${m.pendingBatches}')">Detay</button></td>
       `;
       tbody.appendChild(row);
     });
@@ -3643,7 +3643,7 @@ async function loadBatchSettlements() {
           <td>${b.itemCount || 0}</td>
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td>${b.createdAt ? fmtDate(b.createdAt) : '-'}</td>
-          <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showDetail('Batch ${b.id.substring(0, 8)}', 'İş Ortağı: ${(b.merchant?.name || '-').replace(/'/g, '')}\\nBrüt: ${b.totalGross || 0}\\nKomisyon: ${b.totalCommission || 0}\\nNet: ${b.totalNet || 0}\\nİşlem Sayısı: ${b.itemCount || 0}\\nDurum: ${statusText}')">Detay</button></td>
         `;
         tbody.appendChild(row);
       });
@@ -3757,7 +3757,7 @@ async function loadDenetle() {
         <td>${t.tokenReward ? fmtTokens(t.tokenReward) : '-'}</td>
         <td><span class="badge badge-${statusClass}">${statusText}</span></td>
         <td>${t.createdAt ? fmtDate(t.createdAt) : '-'}</td>
-        <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+        <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(t.title || '').replace(/'/g, '')}', '${(t.description || 'Açıklama yok').replace(/'/g, '').replace(/\n/g, '\\n')}\\n\\nKategori: ${t.category || '-'}\\nTamamlayan: ${completionCount}\\nÖdül: ${t.tokenReward || 0} token')">Detay</button></td>
       `;
       tbody.appendChild(row);
     });
@@ -3795,11 +3795,11 @@ async function loadJobs() {
         row.innerHTML = `
           <td>${j.title || '-'}</td>
           <td>${j.employer?.name || '-'}</td>
-          <td>${fmtMoney(j.budget)}</td>
+          <td>${fmtTokens(j.budget)}</td>
           <td>${j._count?.applications || 0}</td>
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td>${j.createdAt ? fmtDate(j.createdAt) : '-'}</td>
-          <td><button class="btn btn-sm btn-secondary">Detay</button></td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(j.title || '').replace(/'/g, '')}', '${(j.description || 'Açıklama yok').replace(/'/g, '').substring(0, 200)}\\n\\nİşveren: ${(j.employer?.name || '-').replace(/'/g, '')}\\nBütçe: ${j.budget || 0} token\\nBaşvuru: ${j._count?.applications || 0}')">Detay</button></td>
         `;
         tbody.appendChild(row);
       });
@@ -3909,26 +3909,116 @@ async function loadTokenRedemptions() {
 
     tbody.innerHTML = '';
 
-    (data || []).slice(0, 20).forEach(tr => {
+    const redemptions = data.redemptions || data || [];
+    (redemptions).slice(0, 20).forEach(tr => {
       const row = document.createElement('tr');
       const statusClass = tr.status === 'completed' ? 'success' : (tr.status === 'pending' ? 'warning' : 'danger');
       const statusText = tr.status === 'completed' ? 'Tamamlandı' : (tr.status === 'pending' ? 'Beklemede' : 'Başarısız');
 
       row.innerHTML = `
-        <td><strong>${tr.vitaId || 'N/A'}</strong></td>
-        <td>${tr.userName || '-'}</td>
-        <td>${Number(tr.amount || 0).toLocaleString('tr-TR')} 🪙</td>
-        <td>${tr.merchantName || '-'}</td>
-        <td>${fmtMoney(tr.redemptionValue)}</td>
+        <td><strong>${tr.id ? tr.id.substring(0, 8) : '-'}</strong></td>
+        <td>${tr.user?.name || '-'}</td>
+        <td>${fmtTokens(tr.amount || 0)}</td>
+        <td>${tr.merchant?.name || '-'}</td>
+        <td>${fmtMoney(tr.netAmount || 0)}</td>
         <td>${tr.createdAt ? fmtDate(tr.createdAt) : '-'}</td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td><button class="btn-small">Detay</button></td>
+        <td><button class="btn-small" onclick="showDetail('Token Dönüşüm', 'Miktar: ${tr.amount} token\\nKomisyon: ${tr.commissionAmount}\\nNet: ${tr.netAmount}')">Detay</button></td>
       `;
       tbody.appendChild(row);
     });
   } catch (e) {
     console.error('Error loading token redemptions:', e);
   }
+}
+
+// ============================================
+// DETAIL MODAL & ACTION BUTTONS
+// ============================================
+
+function showDetail(title, content) {
+  const overlay = document.getElementById('detail-modal-overlay');
+  if (!overlay) {
+    // Create modal dynamically if not exists
+    const modal = document.createElement('div');
+    modal.id = 'detail-modal-overlay';
+    modal.className = 'modal-overlay';
+    modal.onclick = function(e) { if (e.target === modal) modal.classList.remove('show'); };
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:500px;">
+        <div class="modal-header">
+          <h3 id="detail-modal-title"></h3>
+          <button class="modal-close" onclick="document.getElementById('detail-modal-overlay').classList.remove('show')">&times;</button>
+        </div>
+        <div class="modal-body" id="detail-modal-body" style="white-space:pre-wrap;"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('detail-modal-title').textContent = title;
+  document.getElementById('detail-modal-body').textContent = content;
+  document.getElementById('detail-modal-overlay').classList.add('show');
+}
+
+// Batch Settlement Actions
+async function prepareBatch() {
+  if (!confirm('Bekleyen tüm settlement kayıtları için toplu ödeme hazırlanacak. Devam edilsin mi?')) return;
+  try {
+    const res = await fetch('/api/admin-public/prepare-batch', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) { alert('Hata: ' + data.error); return; }
+    alert('Toplu ödeme hazırlandı! ' + (data.batchCount || 0) + ' batch oluşturuldu.');
+    loadBatchSettlements();
+    loadSettlements();
+  } catch (e) {
+    alert('Batch hazırlama başarısız: ' + e.message);
+  }
+}
+
+async function runBatch() {
+  if (!confirm('Bekleyen tüm batch ödemeleri çalıştırılacak. Bu işlem geri alınamaz. Devam edilsin mi?')) return;
+  try {
+    const res = await fetch('/api/admin-public/run-batch', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) { alert('Hata: ' + data.error); return; }
+    alert('Toplu ödeme tamamlandı! ' + (data.processedCount || 0) + ' batch işlendi.');
+    loadBatchSettlements();
+    loadSettlements();
+    loadCommissions();
+  } catch (e) {
+    alert('Batch çalıştırma başarısız: ' + e.message);
+  }
+}
+
+// NearbyMe Actions
+function showNearbyStats() {
+  const stats = {
+    active: document.getElementById('stat-nearby-active-users')?.textContent || '0',
+    matches: document.getElementById('stat-nearby-matches')?.textContent || '0',
+    checkins: document.getElementById('stat-nearby-checkins')?.textContent || '0',
+    activities: document.getElementById('stat-nearby-activities')?.textContent || '0',
+  };
+  showDetail('NearbyMe İstatistikleri',
+    'Aktif Kullanıcı: ' + stats.active +
+    '\nToplam Eşleşme: ' + stats.matches +
+    '\nMesaj Sayısı: ' + stats.checkins +
+    '\nKabul Edilen Eşleşme: ' + stats.activities
+  );
+}
+
+function exportNearbyReport() {
+  alert('NearbyMe raporu hazırlanıyor... Bu özellik yakında aktif olacak.');
+}
+
+// Denetle Actions
+function newDenetleTask() {
+  showDetail('Yeni Denetim Görevi',
+    'Yeni denetim görevi oluşturma özelliği mobil uygulama üzerinden yapılmaktadır.\n\nDenetçi kullanıcılar mobil uygulamada Gözlemle bölümünden görev oluşturabilir ve tamamlayabilir.'
+  );
+}
+
+function exportDenetleReport() {
+  alert('Denetle raporu hazırlanıyor... Bu özellik yakında aktif olacak.');
 }
 
 // Load all data on page load
