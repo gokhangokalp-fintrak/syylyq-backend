@@ -57,12 +57,13 @@ panelPublicRoutes.get('/performance', async (req: Request, res: Response) => {
       },
     });
 
-    // Unique müşteri sayısı (bu merchant'ta redemption yapan)
-    const uniqueCustomers = await (prisma as any).giftCardRedemption.findMany({
+    // Unique müşteri sayısı — giftCard üzerinden buyer'ları say
+    const redemptionsWithBuyer = await prisma.giftCardRedemption.findMany({
       where: { branch: { merchantId } },
-      select: { userId: true },
-      distinct: ['userId'],
+      select: { giftCard: { select: { buyerId: true } } },
     });
+    const uniqueBuyers = new Set(redemptionsWithBuyer.map(r => r.giftCard.buyerId).filter(Boolean));
+    const customerCount = uniqueBuyers.size;
 
     const avgAmount = settlementAgg._count > 0
       ? Math.round((settlementAgg._sum.totalAmount || 0) / settlementAgg._count)
@@ -89,7 +90,7 @@ panelPublicRoutes.get('/performance', async (req: Request, res: Response) => {
         monthlyIncome: settlementAgg._sum.netAmount || 0,
         monthlyGross: settlementAgg._sum.totalAmount || 0,
         monthlyRedemptions,
-        customerCount: uniqueCustomers.length,
+        customerCount,
         avgTransaction: avgAmount,
         totalTransactions: settlementAgg._count,
       },
