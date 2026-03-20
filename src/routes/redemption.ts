@@ -202,6 +202,144 @@ redemptionRoutes.post('/confirm', requireAuth, requireMerchant, async (req, res)
   }
 });
 
+// ── Verify by code (merchant panel — no JWT, uses code string) ──
+redemptionRoutes.post('/verify-by-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Sertifika kodu zorunludur', valid: false });
+
+    const card = await prisma.giftCard.findFirst({
+      where: { code: code.trim().toUpperCase() },
+      include: {
+        merchant: true,
+        template: true,
+        recipient: { select: { name: true, phone: true } },
+        buyer: { select: { name: true } },
+      },
+    });
+
+    if (!card) return res.status(404).json({ error: 'Sertifika bulunamadı', valid: false });
+
+    if (card.status === 'redeemed') return res.status(400).json({ error: 'Sertifika zaten kullanılmış', valid: false });
+    if (card.status === 'expired' || card.expiresAt < new Date()) return res.status(400).json({ error: 'Süresi doldu', valid: false });
+    if (card.status === 'refunded') return res.status(400).json({ error: 'Sertifika iade edildi', valid: false });
+
+    res.json({
+      valid: true,
+      card: {
+        id: card.id,
+        code: card.code,
+        amount: card.amount,
+        merchantName: card.merchant?.name || 'VITA Sertifika',
+        templateName: card.template?.name || 'VITA Evrensel Sertifika',
+        isVitaCert: card.isVitaCert || !card.merchantId,
+        recipientName: card.recipient?.name || card.buyer.name,
+        buyerName: card.buyer.name,
+        expiresAt: card.expiresAt,
+        status: card.status,
+      },
+    });
+  } catch (err) {
+    console.error('Verify-by-code error:', err);
+    res.status(500).json({ error: 'Sunucu hatası', valid: false });
+  }
+});
+
+// ── Confirm redemption by code (merchant panel) ──
+redemptionRoutes.post('/confirm-by-code', async (req, res) => {
+  try {
+    const { code, merchantName } = req.body;
+    if (!code) return res.status(400).json({ error: 'Sertifika kodu zorunludur' });
+
+    const card = await prisma.giftCard.findFirst({
+      where: { code: code.trim().toUpperCase() },
+    });
+
+    if (!card) return res.status(400).json({ error: 'Sertifika bulunamadı' });
+    if (card.status !== 'active' && card.status !== 'sent') {
+      return res.status(400).json({ error: `Sertifika kullanılamaz (durum: ${card.status})` });
+    }
+
+    // Merchant'ı bul (panelden gelen isimle veya ilk onaylı merchant)
+    const merchant = await prisma.merchant.findFirst({
+      where: merchantName
+        ? { name: { contains: merchantName }, approvalStatus: 'approved' }
+        : { approvalStatus: 'approved' },
+      include: { branches: true },
+    });
+
+    if (!merchant || merchant.branches.length === 0) {
+      return res.status(400).json({ error: 'İşletme veya şube bulunamadı' });
+    }
+
+    const branch = merchant.branches[0];
+    const commissionRate = merchant.commissionRate;
+    const totalAmount = card.amount;
+    const commissionAmount = Math.round(totalAmount * commissionRate);
+    const netAmount = totalAmount - commissionAmount;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const freshCard = await tx.giftCard.findUnique({ where: { id: card.id } });
+      if (!freshCard || (freshCard.status !== 'active' && freshCard.status !== 'sent')) {
+        throw new Error('CARD_NOT_AVAILABLE');
+      }
+
+      const settlement = await tx.settlement.create({
+        data: {
+          merchantId: merchant.id,
+          totalAmount,
+          commissionAmount,
+          netAmount,
+          commissionRate,
+          method: merchant.settlementMethod,
+          status: 'pending',
+        },
+      });
+
+      const redemption = await tx.giftCardRedemption.create({
+        data: {
+          giftCardId: card.id,
+          branchId: branch.id,
+          verifiedBy: 'merchant-panel',
+          amount: card.amount,
+          settlementId: settlement.id,
+        },
+      });
+
+      await tx.giftCard.update({
+        where: { id: card.id },
+        data: { status: 'redeemed' },
+      });
+
+      return { settlement, redemption };
+    });
+
+    res.json({
+      success: true,
+      redemption: {
+        id: result.redemption.id,
+        amount: card.amount,
+        branch: branch.name,
+        merchantName: merchant.name,
+        redeemedAt: result.redemption.redeemedAt,
+      },
+      settlement: {
+        grossAmount: totalAmount,
+        commission: commissionAmount,
+        commissionRate: `${(commissionRate * 100).toFixed(1)}%`,
+        netAmount,
+        status: 'pending',
+      },
+    });
+  } catch (err: any) {
+    if (err.message === 'CARD_NOT_AVAILABLE') {
+      return res.status(400).json({ error: 'Sertifika zaten kullanılmış' });
+    }
+    console.error('Confirm-by-code error:', err);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
 // T+1 Batch Settlement: Ödemeler artık anlık değil.
 // Akşam batch ile toplanır, ertesi gün admin panelden veya otomatik cron ile ödenir.
 // Bkz: src/routes/batchSettlement.ts

@@ -1301,9 +1301,10 @@
                             </div>
 
                             <div class="manual-input-group">
-                                <input type="text" placeholder="Manuel olarak kod giriniz...">
-                                <button class="btn btn-primary">Doğrula</button>
+                                <input type="text" id="manual-code-input" placeholder="SYY-XXXX-XXXX-XXXX kodunu giriniz...">
+                                <button class="btn btn-primary" onclick="verifyCode()">Doğrula</button>
                             </div>
+                            <div id="verify-result" style="margin-top: 16px; display: none;"></div>
                         </div>
 
                         <h5 style="margin-bottom: 12px; font-size: 13px; font-weight: 600;">Son 5 Tarama</h5>
@@ -2393,9 +2394,84 @@ function showTab(btn, tabId) {
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-function verifyCode() {
-  const input = document.querySelector('#section-qr-scanner input[type="text"]');
-  if (input && input.value) alert('Kod doğrulanıyor: ' + input.value);
+async function verifyCode() {
+  const input = document.getElementById('manual-code-input');
+  const resultDiv = document.getElementById('verify-result');
+  if (!input || !input.value.trim()) {
+    alert('Lütfen sertifika kodunu girin');
+    return;
+  }
+
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<p style="color:#6B7280;">Doğrulanıyor...</p>';
+
+  try {
+    const resp = await fetch('/api/redeem/verify-by-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: input.value.trim() }),
+    });
+    const data = await resp.json();
+
+    if (data.valid && data.card) {
+      const c = data.card;
+      resultDiv.innerHTML = `
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:20px;">
+          <h4 style="color:#166534; margin-bottom:12px;">✅ Sertifika Geçerli</h4>
+          <table style="width:100%; font-size:13px;">
+            <tr><td style="color:#6B7280; padding:4px 0;">Kod</td><td style="font-weight:600;">${c.code}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Tutar</td><td style="font-weight:700; font-size:18px; color:#166534;">₺${c.amount.toLocaleString('tr-TR')}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Tür</td><td>${c.isVitaCert ? 'VITA Evrensel Sertifika' : c.merchantName}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Alıcı</td><td>${c.recipientName}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Satın Alan</td><td>${c.buyerName}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Son Kullanma</td><td>${new Date(c.expiresAt).toLocaleDateString('tr-TR')}</td></tr>
+          </table>
+          <button onclick="confirmRedemption('${c.code}')" style="margin-top:16px; width:100%; padding:12px; background:#16A34A; color:#FFF; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer;">
+            ✅ Onayla — ₺${c.amount.toLocaleString('tr-TR')} Tahsil Et
+          </button>
+        </div>`;
+    } else {
+      resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ ${data.error || 'Sertifika doğrulanamadı'}</div>`;
+    }
+  } catch (err) {
+    resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ Bağlantı hatası</div>`;
+  }
+}
+
+async function confirmRedemption(code) {
+  const resultDiv = document.getElementById('verify-result');
+  resultDiv.innerHTML = '<p style="color:#6B7280;">İşlem onaylanıyor...</p>';
+
+  try {
+    const resp = await fetch('/api/redeem/confirm-by-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, merchantName: 'Kahve Dünyası' }),
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      const r = data.redemption;
+      const s = data.settlement;
+      resultDiv.innerHTML = `
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:20px;">
+          <h4 style="color:#166534; margin-bottom:12px;">✅ Sertifika Kullanıldı!</h4>
+          <table style="width:100%; font-size:13px;">
+            <tr><td style="color:#6B7280; padding:4px 0;">İşletme</td><td style="font-weight:600;">${r.merchantName}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Şube</td><td>${r.branch}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Brüt Tutar</td><td style="font-weight:600;">₺${s.grossAmount.toLocaleString('tr-TR')}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Komisyon (${s.commissionRate})</td><td style="color:#DC2626;">-₺${s.commission.toLocaleString('tr-TR')}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Net Tutar</td><td style="font-weight:700; font-size:16px; color:#166534;">₺${s.netAmount.toLocaleString('tr-TR')}</td></tr>
+            <tr><td style="color:#6B7280; padding:4px 0;">Ödeme Durumu</td><td>Beklemede (T+1 toplu ödeme)</td></tr>
+          </table>
+        </div>`;
+      document.getElementById('manual-code-input').value = '';
+    } else {
+      resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ ${data.error || 'Onaylama hatası'}</div>`;
+    }
+  } catch (err) {
+    resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ Bağlantı hatası</div>`;
+  }
 }
 function toggleBankEdit() {
   const form = document.getElementById('bank-edit-form');
