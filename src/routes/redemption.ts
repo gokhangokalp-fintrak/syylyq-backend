@@ -169,10 +169,30 @@ redemptionRoutes.post('/confirm', requireAuth, requireMerchant, async (req, res)
         data: { status: 'redeemed' },
       });
 
+      // ── Cari Hesap kaydı (LedgerEntry) ──
+      const lastLedger = await (tx as any).ledgerEntry.findFirst({
+        where: { merchantId },
+        orderBy: { createdAt: 'desc' },
+      });
+      const prevBalance = lastLedger?.balance || 0;
+      const newBalance = prevBalance + netAmount;
+
+      await (tx as any).ledgerEntry.create({
+        data: {
+          merchantId,
+          type: 'Sertifika Kullanım',
+          description: `${card.code} — ${branch.name}`,
+          debit: netAmount,
+          credit: 0,
+          balance: newBalance,
+          relatedId: settlement.id,
+        },
+      });
+
       return { settlement, redemption };
     });
 
-    console.log(`🎫 Gift card redeemed: ${card.code} at ${scanningMerchant.name} — ${netAmount}₸ net (batch pending)`);
+    console.log(`🎫 Gift card redeemed: ${card.code} at ${scanningMerchant.name} — ${netAmount}₺ net (batch pending)`);
 
     res.json({
       success: true,
@@ -309,6 +329,27 @@ redemptionRoutes.post('/confirm-by-code', async (req, res) => {
       await tx.giftCard.update({
         where: { id: card.id },
         data: { status: 'redeemed' },
+      });
+
+      // ── Cari Hesap kaydı (LedgerEntry) ──
+      // Önceki bakiyeyi bul
+      const lastLedger = await (tx as any).ledgerEntry.findFirst({
+        where: { merchantId: merchant.id },
+        orderBy: { createdAt: 'desc' },
+      });
+      const prevBalance = lastLedger?.balance || 0;
+      const newBalance = prevBalance + netAmount;
+
+      await (tx as any).ledgerEntry.create({
+        data: {
+          merchantId: merchant.id,
+          type: 'Sertifika Kullanım',
+          description: `${card.code} — ${branch.name} (${merchant.name})`,
+          debit: netAmount,
+          credit: 0,
+          balance: newBalance,
+          relatedId: settlement.id,
+        },
       });
 
       return { settlement, redemption };

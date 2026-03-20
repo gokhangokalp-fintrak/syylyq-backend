@@ -245,12 +245,58 @@ panelPublicRoutes.get('/token-payments', async (_req, res) => {
 });
 
 // ── Ledger (Cari Hesap) ──
+// Ledger boşsa settlement'lardan otomatik oluşturur
 panelPublicRoutes.get('/ledger', async (_req, res) => {
   try {
-    const entries = await (prisma as any).ledgerEntry.findMany({
+    // Önce mevcut ledger kayıtlarını kontrol et
+    let entries = await (prisma as any).ledgerEntry.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
+
+    // Eğer ledger boşsa, settlement kayıtlarından otomatik oluştur
+    if (entries.length === 0) {
+      const settlements = await prisma.settlement.findMany({
+        orderBy: { createdAt: 'asc' },
+        include: {
+          merchant: { select: { name: true } },
+          redemptions: {
+            include: {
+              giftCard: { select: { code: true } },
+              branch: { select: { name: true } },
+            },
+          },
+        },
+      });
+
+      if (settlements.length > 0) {
+        let runningBalance = 0;
+        for (const s of settlements) {
+          runningBalance += s.netAmount;
+          const gcCode = s.redemptions[0]?.giftCard?.code || '-';
+          const branchName = s.redemptions[0]?.branch?.name || '-';
+
+          await (prisma as any).ledgerEntry.create({
+            data: {
+              merchantId: s.merchantId,
+              type: 'Sertifika Kullanım',
+              description: `${gcCode} — ${branchName} (${s.merchant.name})`,
+              debit: s.netAmount,
+              credit: 0,
+              balance: runningBalance,
+              relatedId: s.id,
+              createdAt: s.createdAt,
+            },
+          });
+        }
+
+        // Tekrar oku
+        entries = await (prisma as any).ledgerEntry.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        });
+      }
+    }
 
     // Toplam borç/alacak
     const totals = await (prisma as any).ledgerEntry.aggregate({
