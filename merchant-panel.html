@@ -1661,6 +1661,12 @@ function createCampaign() { openModal('campaign-modal'); }
 function confirmCampaign() { closeModal('campaign-modal'); alert('Kampanya başlatıldı! 25🪙 düşüldü.'); }
 
 // ═══════════════════════════════════════
+// Merchant ID yönetimi
+// ═══════════════════════════════════════
+let MERCHANT_ID = '';
+function api(path) { return '/api/panel/' + path + (path.includes('?') ? '&' : '?') + 'mid=' + MERCHANT_ID; }
+
+// ═══════════════════════════════════════
 // Yardımcı fonksiyonlar
 // ═══════════════════════════════════════
 function fmtDate(d) { return new Date(d).toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' }); }
@@ -1733,7 +1739,7 @@ async function loadRecentScans() {
 // ── Performance ──
 async function loadPerformance() {
   try {
-    const resp = await fetch('/api/panel/performance');
+    const resp = await fetch(api('performance'));
     const data = await resp.json();
     const s = data.stats;
     document.getElementById('perf-income').textContent = fmtMoney(s.monthlyIncome);
@@ -1757,7 +1763,7 @@ async function loadPerformance() {
 // ── Sertifika İşlemleri (sadece işletmede kullanılanlar) ──
 async function loadCards() {
   try {
-    const resp = await fetch('/api/panel/cards/redeemed');
+    const resp = await fetch(api('cards/redeemed'));
     const redeemed = await resp.json();
     const body = document.getElementById('cert-redeemed-body');
     if (redeemed.length > 0) {
@@ -1772,7 +1778,7 @@ async function loadCards() {
 // ── Token Payments ──
 async function loadTokenPayments() {
   try {
-    const resp = await fetch('/api/panel/token-payments');
+    const resp = await fetch(api('token-payments'));
     const data = await resp.json();
     const s = data.stats;
     document.getElementById('token-today-count').textContent = s.today.count + ' Ödeme';
@@ -1797,7 +1803,7 @@ async function loadTokenPayments() {
 // ── Ledger ──
 async function loadLedger() {
   try {
-    const resp = await fetch('/api/panel/ledger');
+    const resp = await fetch(api('ledger'));
     const data = await resp.json();
     const s = data.summary;
     document.getElementById('ledger-debit').textContent = fmtMoney(s.totalDebit);
@@ -1817,7 +1823,7 @@ async function loadLedger() {
 // ── Batch Payments ──
 async function loadBatchPayments() {
   try {
-    const resp = await fetch('/api/panel/batch-payments');
+    const resp = await fetch(api('batch-payments'));
     const data = await resp.json();
     document.getElementById('batch-total').textContent = data.stats.total;
     document.getElementById('batch-completed').textContent = data.stats.completed;
@@ -1837,7 +1843,7 @@ async function loadBatchPayments() {
 // ── Bank Info ──
 async function loadBankInfo() {
   try {
-    const resp = await fetch('/api/panel/bank-info');
+    const resp = await fetch(api('bank-info'));
     const data = await resp.json();
     document.getElementById('bank-name').textContent = data.bankName || '-';
     document.getElementById('bank-account').textContent = data.bankAccount || '-';
@@ -1852,7 +1858,7 @@ async function loadBankInfo() {
 // ── Staff ──
 async function loadStaff() {
   try {
-    const resp = await fetch('/api/panel/staff');
+    const resp = await fetch(api('staff'));
     const data = await resp.json();
     document.getElementById('staff-total').textContent = data.stats.total;
     document.getElementById('staff-owner').textContent = data.stats.owner;
@@ -1872,7 +1878,7 @@ async function loadStaff() {
 // ── Reviews ──
 async function loadReviews() {
   try {
-    const resp = await fetch('/api/panel/reviews');
+    const resp = await fetch(api('reviews'));
     const data = await resp.json();
     const s = data.stats;
     document.getElementById('review-total').textContent = s.totalReviews;
@@ -1895,7 +1901,7 @@ async function loadReviews() {
 // ── Tasks ──
 async function loadTasks() {
   try {
-    const resp = await fetch('/api/panel/tasks');
+    const resp = await fetch(api('tasks'));
     const tasks = await resp.json();
     const tbody = document.getElementById('tasks-body');
     if (tasks && tasks.length > 0) {
@@ -1911,7 +1917,7 @@ async function loadTasks() {
 // ── NearbyMe Profile ──
 async function loadNearbyProfile() {
   try {
-    const resp = await fetch('/api/panel/nearby-profile');
+    const resp = await fetch(api('nearby-profile'));
     const data = await resp.json();
     document.getElementById('nearby-views').textContent = data.stats.views;
     document.getElementById('nearby-checkins').textContent = data.stats.checkins;
@@ -1935,7 +1941,7 @@ async function loadNearbyProfile() {
 // ── Settings ──
 async function loadSettings() {
   try {
-    const resp = await fetch('/api/panel/settings');
+    const resp = await fetch(api('settings'));
     const data = await resp.json();
     if (data.merchant) {
       document.getElementById('settings-name').value = data.merchant.name || '';
@@ -1951,13 +1957,34 @@ async function loadSettings() {
 // ═══════════════════════════════════════
 // Nav click handlers + Data loading
 // ═══════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.nav-link[data-section]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       showSection(link.dataset.section);
     });
   });
+
+  // Önce merchant listesini yükle ve URL'den veya ilk merchant'ı seç
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMid = urlParams.get('mid');
+    if (urlMid) {
+      MERCHANT_ID = urlMid;
+    } else {
+      const resp = await fetch('/api/panel/merchants');
+      const merchants = await resp.json();
+      if (merchants.length > 0) {
+        // "Kahve Dünyası" varsa onu seç, yoksa ilk merchant
+        const kahve = merchants.find(m => m.name.toLowerCase().includes('kahve'));
+        MERCHANT_ID = kahve ? kahve.id : merchants[0].id;
+        // Sidebar'daki merchant adını güncelle
+        const nameEl = document.querySelector('.merchant-name');
+        const selected = merchants.find(m => m.id === MERCHANT_ID);
+        if (nameEl && selected) nameEl.textContent = selected.name;
+      }
+    }
+  } catch (err) { console.warn('Merchant listesi yüklenemedi:', err); }
 
   // Tüm sayfaları paralel olarak yükle
   loadSettlements();
