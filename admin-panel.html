@@ -700,7 +700,8 @@
       display: flex;
     }
 
-    .modal {
+    .modal,
+    .modal-content {
       background-color: var(--card);
       border-radius: 12px;
       padding: 32px;
@@ -714,6 +715,44 @@
       font-weight: 700;
       color: var(--text);
       margin-bottom: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background-color: #f1f5f9;
+      color: var(--text);
+    }
+
+    .modal-body {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
     }
 
     .form-group {
@@ -3494,8 +3533,19 @@ async function loadSettlements() {
         <td>${m.merchant.bankName || '-'}</td>
         <td>${m.pendingBatches}</td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(m.merchant.name || '').replace(/'/g, '')}', 'Borç: ${fmtMoney(m.balance || 0)}\\nBanka: ${m.merchant.bankName || '-'}\\nHesap: ${m.merchant.bankAccount || 'Belirtilmedi'}\\nBekleyen Batch: ${m.pendingBatches}')">Detay</button></td>
+        <td><button class="btn btn-sm btn-secondary detail-btn">Detay</button></td>
       `;
+      const btn = row.querySelector('.detail-btn');
+      btn.onclick = function() {
+        showDetail(m.merchant.name || 'Hesap Detay', [
+          { label: 'İş Ortağı', value: m.merchant.name || '-' },
+          { label: 'Borç Tutarı', value: fmtMoney(m.balance || 0) },
+          { label: 'Banka', value: m.merchant.bankName || '-' },
+          { label: 'Hesap No', value: m.merchant.bankAccount || 'Belirtilmedi' },
+          { label: 'Bekleyen Batch', value: m.pendingBatches },
+          { label: 'Durum', value: statusText },
+        ]);
+      };
       tbody.appendChild(row);
     });
   } catch (e) {
@@ -3638,13 +3688,26 @@ async function loadBatchSettlements() {
 
         row.innerHTML = `
           <td>${b.id.substring(0, 8)}</td>
-          <td>${b.merchant?.name || '-'}</td>
+          <td>${b.merchantObj?.name || '-'}</td>
           <td>${fmtMoney(b.totalNet || 0)}</td>
           <td>${b.itemCount || 0}</td>
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td>${b.createdAt ? fmtDate(b.createdAt) : '-'}</td>
-          <td><button class="btn btn-sm btn-secondary" onclick="showDetail('Batch ${b.id.substring(0, 8)}', 'İş Ortağı: ${(b.merchant?.name || '-').replace(/'/g, '')}\\nBrüt: ${b.totalGross || 0}\\nKomisyon: ${b.totalCommission || 0}\\nNet: ${b.totalNet || 0}\\nİşlem Sayısı: ${b.itemCount || 0}\\nDurum: ${statusText}')">Detay</button></td>
+          <td><button class="btn btn-sm btn-secondary detail-btn">Detay</button></td>
         `;
+        const btn = row.querySelector('.detail-btn');
+        btn.onclick = function() {
+          showDetail('Batch #' + b.id.substring(0, 8), [
+            { label: 'İş Ortağı', value: b.merchantObj?.name || '-' },
+            { label: 'Batch Tarihi', value: b.batchDate || '-' },
+            { label: 'Brüt Tutar', value: fmtMoney(b.totalGross || 0) },
+            { label: 'Komisyon', value: fmtMoney(b.totalCommission || 0) },
+            { label: 'Net Tutar', value: fmtMoney(b.totalNet || 0) },
+            { label: 'İşlem Sayısı', value: b.itemCount || 0 },
+            { label: 'Yöntem', value: b.method || '-' },
+            { label: 'Durum', value: statusText },
+          ]);
+        };
         tbody.appendChild(row);
       });
     }
@@ -3746,8 +3809,8 @@ async function loadDenetle() {
     (tasks || []).slice(0, 8).forEach((t, idx) => {
       const row = document.createElement('tr');
       const completionCount = t._count?.completions || 0;
-      const statusClass = 'info';
-      const statusText = 'Aktif';
+      const statusClass = t.isActive ? 'info' : 'warning';
+      const statusText = t.isActive ? 'Aktif' : 'Pasif';
 
       row.innerHTML = `
         <td>#GÖR-${(idx + 1).toString().padStart(3, '0')}</td>
@@ -3757,8 +3820,19 @@ async function loadDenetle() {
         <td>${t.tokenReward ? fmtTokens(t.tokenReward) : '-'}</td>
         <td><span class="badge badge-${statusClass}">${statusText}</span></td>
         <td>${t.createdAt ? fmtDate(t.createdAt) : '-'}</td>
-        <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(t.title || '').replace(/'/g, '')}', '${(t.description || 'Açıklama yok').replace(/'/g, '').replace(/\n/g, '\\n')}\\n\\nKategori: ${t.category || '-'}\\nTamamlayan: ${completionCount}\\nÖdül: ${t.tokenReward || 0} token')">Detay</button></td>
+        <td><button class="btn btn-sm btn-secondary detail-btn">Detay</button></td>
       `;
+      const btn = row.querySelector('.detail-btn');
+      btn.onclick = function() {
+        showDetail(t.title || 'Görev Detay', [
+          { label: 'İş Ortağı', value: t.merchant?.name || '-' },
+          { label: 'Kategori', value: t.category || '-' },
+          { label: 'Açıklama', value: t.description || 'Açıklama yok' },
+          { label: 'Token Ödül', value: t.tokenReward ? fmtTokens(t.tokenReward) : '-' },
+          { label: 'Tamamlayan', value: completionCount + ' kişi' },
+          { label: 'Durum', value: statusText },
+        ]);
+      };
       tbody.appendChild(row);
     });
   } catch (e) {
@@ -3799,8 +3873,20 @@ async function loadJobs() {
           <td>${j._count?.applications || 0}</td>
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td>${j.createdAt ? fmtDate(j.createdAt) : '-'}</td>
-          <td><button class="btn btn-sm btn-secondary" onclick="showDetail('${(j.title || '').replace(/'/g, '')}', '${(j.description || 'Açıklama yok').replace(/'/g, '').substring(0, 200)}\\n\\nİşveren: ${(j.employer?.name || '-').replace(/'/g, '')}\\nBütçe: ${j.budget || 0} token\\nBaşvuru: ${j._count?.applications || 0}')">Detay</button></td>
+          <td><button class="btn btn-sm btn-secondary detail-btn">Detay</button></td>
         `;
+        const btn = row.querySelector('.detail-btn');
+        btn.onclick = function() {
+          showDetail(j.title || 'İş İlanı', [
+            { label: 'Başlık', value: j.title || '-' },
+            { label: 'İşveren', value: j.employer?.name || '-' },
+            { label: 'Açıklama', value: (j.description || 'Açıklama yok').substring(0, 300) },
+            { label: 'Bütçe', value: fmtTokens(j.budget || 0) },
+            { label: 'Başvuru Sayısı', value: j._count?.applications || 0 },
+            { label: 'Durum', value: statusText },
+            { label: 'Tarih', value: j.createdAt ? fmtDate(j.createdAt) : '-' },
+          ]);
+        };
         tbody.appendChild(row);
       });
     }
@@ -3923,8 +4009,20 @@ async function loadTokenRedemptions() {
         <td>${fmtMoney(tr.netAmount || 0)}</td>
         <td>${tr.createdAt ? fmtDate(tr.createdAt) : '-'}</td>
         <td><span class="badge ${statusClass}">${statusText}</span></td>
-        <td><button class="btn-small" onclick="showDetail('Token Dönüşüm', 'Miktar: ${tr.amount} token\\nKomisyon: ${tr.commissionAmount}\\nNet: ${tr.netAmount}')">Detay</button></td>
+        <td><button class="btn-small detail-btn">Detay</button></td>
       `;
+      const btn = row.querySelector('.detail-btn');
+      btn.onclick = function() {
+        showDetail('Token Dönüşüm', [
+          { label: 'Kullanıcı', value: tr.user?.name || '-' },
+          { label: 'İş Ortağı', value: tr.merchant?.name || '-' },
+          { label: 'Token Miktarı', value: fmtTokens(tr.amount || 0) },
+          { label: 'Komisyon Oranı', value: '%' + ((tr.commissionRate || 0) * 100).toFixed(0) },
+          { label: 'Komisyon Tutarı', value: fmtMoney(tr.commissionAmount || 0) },
+          { label: 'Net Tutar', value: fmtMoney(tr.netAmount || 0) },
+          { label: 'Durum', value: statusText },
+        ]);
+      };
       tbody.appendChild(row);
     });
   } catch (e) {
@@ -3936,27 +4034,44 @@ async function loadTokenRedemptions() {
 // DETAIL MODAL & ACTION BUTTONS
 // ============================================
 
-function showDetail(title, content) {
-  const overlay = document.getElementById('detail-modal-overlay');
-  if (!overlay) {
-    // Create modal dynamically if not exists
-    const modal = document.createElement('div');
-    modal.id = 'detail-modal-overlay';
-    modal.className = 'modal-overlay';
-    modal.onclick = function(e) { if (e.target === modal) modal.classList.remove('show'); };
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width:500px;">
-        <div class="modal-header">
-          <h3 id="detail-modal-title"></h3>
-          <button class="modal-close" onclick="document.getElementById('detail-modal-overlay').classList.remove('show')">&times;</button>
-        </div>
-        <div class="modal-body" id="detail-modal-body" style="white-space:pre-wrap;"></div>
+// Detail modal — init once
+(function() {
+  const modal = document.createElement('div');
+  modal.id = 'detail-modal-overlay';
+  modal.className = 'modal-overlay';
+  modal.onclick = function(e) { if (e.target === modal) modal.classList.remove('show'); };
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:520px;">
+      <div class="modal-header">
+        <h3 id="detail-modal-title"></h3>
+        <button class="modal-close" onclick="document.getElementById('detail-modal-overlay').classList.remove('show')">&times;</button>
       </div>
-    `;
-    document.body.appendChild(modal);
-  }
+      <div id="detail-modal-body" class="modal-body"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+})();
+
+function showDetail(title, rows) {
+  // rows = array of {label, value} objects OR a string
   document.getElementById('detail-modal-title').textContent = title;
-  document.getElementById('detail-modal-body').textContent = content;
+  const body = document.getElementById('detail-modal-body');
+  body.innerHTML = '';
+
+  if (typeof rows === 'string') {
+    body.style.whiteSpace = 'pre-wrap';
+    body.textContent = rows;
+  } else {
+    body.style.whiteSpace = '';
+    const table = document.createElement('table');
+    table.style.cssText = 'width:100%;border-collapse:collapse;';
+    rows.forEach(function(r) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td style="padding:10px 16px 10px 0;font-weight:600;color:#64748B;white-space:nowrap;border-bottom:1px solid #f1f5f9;">' + r.label + '</td><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;">' + r.value + '</td>';
+      table.appendChild(tr);
+    });
+    body.appendChild(table);
+  }
   document.getElementById('detail-modal-overlay').classList.add('show');
 }
 
@@ -3992,18 +4107,12 @@ async function runBatch() {
 
 // NearbyMe Actions
 function showNearbyStats() {
-  const stats = {
-    active: document.getElementById('stat-nearby-active-users')?.textContent || '0',
-    matches: document.getElementById('stat-nearby-matches')?.textContent || '0',
-    checkins: document.getElementById('stat-nearby-checkins')?.textContent || '0',
-    activities: document.getElementById('stat-nearby-activities')?.textContent || '0',
-  };
-  showDetail('NearbyMe İstatistikleri',
-    'Aktif Kullanıcı: ' + stats.active +
-    '\nToplam Eşleşme: ' + stats.matches +
-    '\nMesaj Sayısı: ' + stats.checkins +
-    '\nKabul Edilen Eşleşme: ' + stats.activities
-  );
+  showDetail('NearbyMe İstatistikleri', [
+    { label: 'Aktif Kullanıcı', value: document.getElementById('stat-nearby-active-users')?.textContent || '0' },
+    { label: 'Toplam Eşleşme', value: document.getElementById('stat-nearby-matches')?.textContent || '0' },
+    { label: 'Mesaj Sayısı', value: document.getElementById('stat-nearby-checkins')?.textContent || '0' },
+    { label: 'Kabul Edilen', value: document.getElementById('stat-nearby-activities')?.textContent || '0' },
+  ]);
 }
 
 function exportNearbyReport() {
@@ -4012,9 +4121,11 @@ function exportNearbyReport() {
 
 // Denetle Actions
 function newDenetleTask() {
-  showDetail('Yeni Denetim Görevi',
-    'Yeni denetim görevi oluşturma özelliği mobil uygulama üzerinden yapılmaktadır.\n\nDenetçi kullanıcılar mobil uygulamada Gözlemle bölümünden görev oluşturabilir ve tamamlayabilir.'
-  );
+  showDetail('Yeni Denetim Görevi', [
+    { label: 'Bilgi', value: 'Denetim görevleri mobil uygulama üzerinden oluşturulur.' },
+    { label: 'Süreç', value: 'Denetçi kullanıcılar Gözlemle bölümünden görev tamamlayabilir.' },
+    { label: 'Admin', value: 'Burada görev sonuçlarını inceleyip onaylayabilirsiniz.' },
+  ]);
 }
 
 function exportDenetleReport() {

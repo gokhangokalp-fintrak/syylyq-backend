@@ -520,7 +520,7 @@ adminPublicRoutes.get('/batch-settlements', async (_req: Request, res: Response)
   try {
     const batches = await (prisma as any).batchSettlement.findMany({
       include: {
-        merchant: { select: { id: true, name: true } },
+        merchantObj: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 50,
