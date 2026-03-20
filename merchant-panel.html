@@ -643,6 +643,125 @@
         .modal .btn {
             margin-top: 16px;
         }
+        /* STATS GRID (Toplu Ödemeler, NearbyMe, Görev Talepleri vb.) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stats-grid .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-grid .icon-box {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--bg-light);
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-grid .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stats-grid .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* TABLE CARD */
+        .table-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .table-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        /* FORM ELEMENTS */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* BUTTON STYLES */
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
     </style>
 </head>
 <body>
@@ -855,11 +974,6 @@
                         <tbody id="perf-branches"><tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
                     </div>
 
-                    <div class="card">
-                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Şablon Satış Performansı</h4>
-                        <table><thead><tr><th>Şablon Adı</th><th>Fiyat</th><th>Satış Adedi</th><th>Gelir</th><th>Yüzde</th></tr></thead>
-                        <tbody id="perf-templates"><tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
-                    </div>
                 </div>
 
                 <!-- SECTION 3: HEDİYE KARTLARI (CARDS) -->
@@ -943,35 +1057,51 @@
                     </div>
                 </div>
 <div class="section" id="section-batch">
-  <div class="stats-grid">
-    <div class="stat-card"><div class="icon-box" id="batch-total">-</div><div class="label">Toplam Ödeme</div></div>
-    <div class="stat-card"><div class="icon-box" id="batch-completed">-</div><div class="label">Tamamlanan</div></div>
-    <div class="stat-card"><div class="icon-box" id="batch-pending">-</div><div class="label">Bekleyen</div></div>
-    <div class="stat-card"><div class="icon-box" id="batch-cancelled">-</div><div class="label">İptal</div></div>
+  <div class="grid-3" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-card">
+      <div class="stat-label">Toplam Ödeme</div>
+      <div class="stat-value" id="batch-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tamamlanan</div>
+      <div class="stat-value" style="color:var(--success);" id="batch-completed">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Bekleyen</div>
+      <div class="stat-value" style="color:var(--warning);" id="batch-pending">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">İptal</div>
+      <div class="stat-value" style="color:var(--danger);" id="batch-cancelled">-</div>
+    </div>
   </div>
-  <div class="table-card">
-    <h3>Ödeme Geçmişi</h3>
-    <table><thead><tr class="table-header"><th>Tarih</th><th>İşletme</th><th>İşlem Sayısı</th><th>Brüt Tutar</th><th>Komisyon</th><th>Net Tutar</th><th>Durum</th><th>Referans</th></tr></thead>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Ödeme Geçmişi</h3>
+    <div style="overflow-x:auto;">
+    <table><thead><tr><th>Tarih</th><th>İşletme</th><th>İşlem Sayısı</th><th>Brüt Tutar</th><th>Komisyon</th><th>Net Tutar</th><th>Durum</th><th>Referans</th></tr></thead>
     <tbody id="batch-body"><tr><td colspan="8" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-bank">
-  <div class="table-card">
-    <h3>Banka Bilgileri</h3>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Banka Bilgileri</h3>
 
-    <div id="bank-info-display" style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-      <div style="margin-bottom: 10px;"><strong>Banka:</strong> <span id="bank-name">Yükleniyor...</span></div>
-      <div style="margin-bottom: 10px;"><strong>Hesap No:</strong> <span id="bank-account">-</span></div>
-      <div style="margin-bottom: 10px;"><strong>Hesap Sahibi:</strong> <span id="bank-owner">-</span></div>
-      <div style="margin-bottom: 10px;"><strong>Vergi No:</strong> <span id="bank-bin">-</span></div>
-      <div style="margin-bottom: 10px;"><strong>Ödeme Yöntemi:</strong> <span id="bank-method">-</span></div>
-      <div style="margin-bottom: 10px;"><strong>Telefon:</strong> <span id="bank-phone">-</span></div>
-      <div style="margin-bottom: 10px;"><strong>E-posta:</strong> <span id="bank-email">-</span></div>
-      <button class="btn btn-primary" onclick="toggleBankEdit()">Düzenle</button>
+    <div id="bank-info-display" style="margin-bottom:20px;padding:20px;background:var(--bg-light);border-radius:12px;">
+      <div class="grid-2" style="gap:12px;margin-bottom:0;">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Banka</span><br/><strong id="bank-name" style="font-size:14px;">Yükleniyor...</strong></div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Hesap No (IBAN)</span><br/><strong id="bank-account" style="font-size:14px;">-</strong></div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Hesap Sahibi</span><br/><strong id="bank-owner" style="font-size:14px;">-</strong></div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Vergi No</span><br/><strong id="bank-bin" style="font-size:14px;">-</strong></div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Ödeme Yöntemi</span><br/><strong id="bank-method" style="font-size:14px;">-</strong></div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);font-size:13px;">Telefon</span><br/><strong id="bank-phone" style="font-size:14px;">-</strong></div>
+        <div style="padding:8px 0;"><span style="color:var(--text-secondary);font-size:13px;">E-posta</span><br/><strong id="bank-email" style="font-size:14px;">-</strong></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="toggleBankEdit()">Düzenle</button>
     </div>
 
-    <div id="bank-edit-form" style="display: none; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+    <div id="bank-edit-form" style="display:none;padding:20px;background:var(--bg-light);border-radius:12px;">
       <div class="form-group">
         <label>Banka</label>
         <select>
@@ -995,45 +1125,69 @@
       <button class="btn btn-success" onclick="saveBankInfo()">Kaydet</button>
     </div>
 
-    <div style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 4px; font-size: 14px;">
+    <div style="margin-top:16px;padding:12px 16px;background:#ECFDF5;border-left:4px solid var(--success);border-radius:8px;font-size:13px;">
       <strong>Not:</strong> Banka bilgileri sadece işletme sahibi tarafından değiştirilebilir.
     </div>
   </div>
 </div>
 
 <div class="section" id="section-nearby-profile">
-  <div class="stats-grid">
-    <div class="stat-card"><div class="icon-box" id="nearby-views">-</div><div class="label">NearbyMe Görüntülenme</div></div>
-    <div class="stat-card"><div class="icon-box" id="nearby-checkins">-</div><div class="label">Check-in Sayısı</div></div>
-    <div class="stat-card"><div class="icon-box">⭐</div><div class="label">Ortalama Puan</div><div class="value" id="nearby-rating">-</div></div>
-  </div>
-
-  <div class="table-card">
-    <h3>İşletme Profili</h3>
-    <div id="nearby-profile-info" style="margin-bottom: 20px;">
-      <div class="form-group"><label>İşletme Adı</label><input type="text" id="nearby-name" value="" readonly /></div>
-      <div class="form-group"><label>Kategori</label><input type="text" id="nearby-category" value="" readonly /></div>
-      <div class="form-group"><label>Açıklama</label><textarea id="nearby-desc" style="min-height:100px;" readonly></textarea></div>
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="stat-label">NearbyMe Görüntülenme</div>
+      <div class="stat-value" id="nearby-views">-</div>
+      <div class="stat-change">Son 30 gün</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Check-in Sayısı</div>
+      <div class="stat-value" id="nearby-checkins">-</div>
+      <div class="stat-change">Son 30 gün</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ortalama Puan</div>
+      <div class="stat-value" id="nearby-rating">-</div>
+      <div class="stat-change">⭐ NearbyMe Puanı</div>
     </div>
   </div>
 
-  <div class="table-card">
-    <h3>Şubeler</h3>
-    <table><thead><tr class="table-header"><th>Şube Adı</th><th>Şehir</th><th>Adres</th><th>Telefon</th></tr></thead>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">İşletme Profili</h3>
+    <div class="grid-2" id="nearby-profile-info">
+      <div class="form-group"><label>İşletme Adı</label><input type="text" id="nearby-name" value="" readonly /></div>
+      <div class="form-group"><label>Kategori</label><input type="text" id="nearby-category" value="" readonly /></div>
+    </div>
+    <div class="form-group"><label>Açıklama</label><textarea id="nearby-desc" style="min-height:100px;" readonly></textarea></div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Şubeler</h3>
+    <div style="overflow-x:auto;">
+    <table><thead><tr><th>Şube Adı</th><th>Şehir</th><th>Adres</th><th>Telefon</th></tr></thead>
     <tbody id="nearby-branches"><tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-campaigns">
-  <div class="stats-grid">
-    <div class="stat-card"><div class="icon-box">0</div><div class="label">Aktif Kampanya</div><div class="value">Henüz kampanya yok</div></div>
-    <div class="stat-card"><div class="icon-box">0</div><div class="label">Toplam Katılım</div><div class="value">-</div></div>
-    <div class="stat-card"><div class="icon-box">📊</div><div class="label">Dönüşüm Oranı</div><div class="value">-</div></div>
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="stat-label">Aktif Kampanya</div>
+      <div class="stat-value">0</div>
+      <div class="stat-change" style="color:var(--text-secondary);">Henüz kampanya yok</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Toplam Katılım</div>
+      <div class="stat-value">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dönüşüm Oranı</div>
+      <div class="stat-value">-</div>
+    </div>
   </div>
 
-  <div class="table-card">
-    <h3>Kampanya Oluştur</h3>
-    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px;">
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Kampanya Oluştur</h3>
+    <div style="padding:20px;background:var(--bg-light);border-radius:8px;">
       <div class="form-group">
         <label>Kampanya Adı</label>
         <input type="text" placeholder="Kampanya adını girin..." />
@@ -1063,143 +1217,143 @@
       </div>
       <div class="form-group">
         <label>Açıklama</label>
-        <textarea placeholder="Kampanya açıklaması yazın..." style="min-height: 80px;"></textarea>
+        <textarea placeholder="Kampanya açıklaması yazın..."></textarea>
       </div>
       <button class="btn btn-success" onclick="createCampaign()">Kampanya Oluştur (25🪙)</button>
     </div>
   </div>
 
-  <div class="table-card">
-    <h3>Aktif Kampanyalar</h3>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Aktif Kampanyalar</h3>
+    <div style="overflow-x:auto;">
     <table>
-      <thead>
-        <tr class="table-header">
-          <th>Kampanya Adı</th>
-          <th>Tür</th>
-          <th>Başlangıç</th>
-          <th>Bitiş</th>
-          <th>Katılım</th>
-          <th>Harcanan Token</th>
-          <th>Durum</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Kampanya Adı</th><th>Tür</th><th>Başlangıç</th><th>Bitiş</th><th>Katılım</th><th>Harcanan Token</th><th>Durum</th></tr></thead>
       <tbody>
         <tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:20px;">Henüz kampanya oluşturulmadı. Yukarıdaki formu kullanarak yeni kampanya başlatabilirsiniz.</td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-reviews">
-  <div class="stats-grid">
-    <div class="stat-card"><div class="icon-box" id="review-total">-</div><div class="label">Toplam Denetim</div></div>
-    <div class="stat-card"><div class="icon-box">⭐</div><div class="label">Ortalama Puan</div><div class="value" id="review-avg">-</div></div>
-    <div class="stat-card"><div class="icon-box">📅</div><div class="label">Son Denetim</div><div class="value" id="review-last">-</div></div>
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="stat-label">Toplam Denetim</div>
+      <div class="stat-value" id="review-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ortalama Puan</div>
+      <div class="stat-value" id="review-avg">-</div>
+      <div class="stat-change">⭐ Denetim Puanı</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Son Denetim</div>
+      <div class="stat-value" style="font-size:16px;" id="review-last">-</div>
+    </div>
   </div>
 
-  <div class="table-card">
-    <h3>Genel Denetim Puanı</h3>
-    <div id="review-score-card" style="text-align:center;padding:30px;background:#f9f9f9;border-radius:8px;margin-bottom:20px;">
-      <div style="font-size:48px;font-weight:bold;margin-bottom:10px;" id="review-big-score">-</div>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Genel Denetim Puanı</h3>
+    <div id="review-score-card" style="text-align:center;padding:30px;background:var(--bg-light);border-radius:12px;margin-bottom:20px;">
+      <div style="font-size:48px;font-weight:bold;margin-bottom:10px;color:var(--primary);" id="review-big-score">-</div>
       <div style="font-size:20px;margin-bottom:20px;" id="review-stars">-</div>
     </div>
   </div>
 
-  <div class="table-card">
-    <h3>Denetim Geçmişi</h3>
-    <table><thead><tr class="table-header"><th>Tarih</th><th>Denetçi</th><th>Görev</th><th>Kategori</th><th>Puan</th><th>Yorum</th><th>Durum</th></tr></thead>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Denetim Geçmişi</h3>
+    <div style="overflow-x:auto;">
+    <table><thead><tr><th>Tarih</th><th>Denetçi</th><th>Görev</th><th>Kategori</th><th>Puan</th><th>Yorum</th><th>Durum</th></tr></thead>
     <tbody id="reviews-body"><tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
-      </tbody>
-    </table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-task-requests">
-  <div style="padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px; margin-bottom: 20px;">
-    <strong>ℹ️ Bilgi:</strong> Gözlemle modülü üzerinden işletmenize özel denetim görevi oluşturabilirsiniz.
+  <div style="padding:14px 18px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:8px;margin-bottom:24px;font-size:14px;line-height:1.5;">
+    <strong>ℹ️ Bilgi:</strong> Gözlemle modülü üzerinden işletmenize özel denetim görevi oluşturabilirsiniz. Denetçiler görevleri tamamladıktan sonra sonuçlar burada listelenir.
   </div>
 
-  <div class="table-card">
-    <h3>Yeni Görev Talebi</h3>
-    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px;">
-      <div class="form-group">
-        <label>Görev Türü</label>
-        <select>
-          <option>Kalite Kontrol</option>
-          <option>Hizmet Değerlendirme</option>
-          <option>Temizlik Denetimi</option>
-          <option>Gizli Müşteri</option>
-        </select>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Yeni Görev Talebi</h3>
+    <div style="padding:20px;background:var(--bg-light);border-radius:8px;">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Görev Türü</label>
+          <select>
+            <option>Kalite Kontrol</option>
+            <option>Hizmet Değerlendirme</option>
+            <option>Temizlik Denetimi</option>
+            <option>Gizli Müşteri</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Token Ödülü (min: 65, max: 95)</label>
+          <input type="number" min="65" max="95" placeholder="Örn: 75" />
+        </div>
       </div>
       <div class="form-group">
         <label>Açıklama</label>
-        <textarea placeholder="Görev açıklaması yazın..." style="min-height: 80px;"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Token Ödülü (min: 65, max: 95)</label>
-        <input type="number" min="65" max="95" placeholder="Token miktarı girin..." />
+        <textarea placeholder="Görev detaylarını yazın... (Neye dikkat edilsin, hangi kriterler değerlendirilsin vb.)"></textarea>
       </div>
       <button class="btn btn-primary" onclick="createTask()">Görev Oluştur</button>
     </div>
   </div>
 
-  <div class="table-card">
-    <h3>Görev Geçmişi</h3>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Görev Geçmişi</h3>
+    <div style="overflow-x:auto;">
     <table>
-      <thead>
-        <tr class="table-header">
-          <th>Tarih</th>
-          <th>Tür</th>
-          <th>Denetçi</th>
-          <th>Durum</th>
-          <th>Puan</th>
-          <th>Token</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Tarih</th><th>Tür</th><th>Denetçi</th><th>Durum</th><th>Puan</th><th>Token</th></tr></thead>
       <tbody id="tasks-body">
         <tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-staff">
-  <div class="stats-grid">
-    <div class="stat-card"><div class="icon-box" id="staff-total">-</div><div class="label">Toplam</div></div>
-    <div class="stat-card"><div class="icon-box" id="staff-owner">-</div><div class="label">Yönetici</div></div>
-    <div class="stat-card"><div class="icon-box" id="staff-manager">-</div><div class="label">Müdür</div></div>
-    <div class="stat-card"><div class="icon-box" id="staff-staff">-</div><div class="label">Personel</div></div>
+  <div class="grid-3" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-card">
+      <div class="stat-label">Toplam</div>
+      <div class="stat-value" id="staff-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Yönetici</div>
+      <div class="stat-value" style="color:var(--syylyq);" id="staff-owner">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Müdür</div>
+      <div class="stat-value" style="color:#3B82F6;" id="staff-manager">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Personel</div>
+      <div class="stat-value" style="color:var(--success);" id="staff-staff">-</div>
+    </div>
   </div>
 
-  <div class="table-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 style="margin: 0;">Çalışan Listesi</h3>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="font-size:16px;font-weight:700;margin:0;">Çalışan Listesi</h3>
       <button class="btn btn-primary" onclick="addStaff()">Çalışan Ekle</button>
     </div>
+    <div style="overflow-x:auto;">
     <table>
-      <thead>
-        <tr class="table-header">
-          <th>Ad Soyad</th>
-          <th>Rol</th>
-          <th>E-posta</th>
-          <th>Telefon</th>
-          <th>Şube</th>
-          <th>Son Giriş</th>
-          <th>Durum</th>
-          <th>İşlem</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Ad Soyad</th><th>Rol</th><th>E-posta</th><th>Telefon</th><th>Şube</th><th>Son Giriş</th><th>Durum</th><th>İşlem</th></tr></thead>
       <tbody id="staff-body">
         <tr><td colspan="8" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 
 <div class="section" id="section-settings">
   <div class="grid-2">
-    <div class="table-card">
-      <h3>İşletme Bilgileri</h3>
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">İşletme Bilgileri</h3>
       <div class="form-group">
         <label>İşletme Adı</label>
         <input type="text" id="settings-name" value="" />
@@ -1227,8 +1381,8 @@
       <button class="btn btn-success" onclick="saveSettings('İşletme Bilgileri')">Kaydet</button>
     </div>
 
-    <div class="table-card">
-      <h3>Bildirim Ayarları</h3>
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Bildirim Ayarları</h3>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
         <span>Yeni Satış</span>
         <div class="toggle active"></div>
@@ -1252,8 +1406,8 @@
       <button class="btn btn-success" onclick="saveSettings('Bildirim Ayarları')" style="margin-top: 15px; width: 100%;">Kaydet</button>
     </div>
 
-    <div class="table-card">
-      <h3>QR Ayarları</h3>
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">QR Ayarları</h3>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee;">
         <span>Otomatik Onay</span>
         <div class="toggle active"></div>
@@ -1265,8 +1419,8 @@
       <button class="btn btn-success" onclick="saveSettings('QR Ayarları')">Kaydet</button>
     </div>
 
-    <div class="table-card">
-      <h3>Güvenlik</h3>
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Güvenlik</h3>
       <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;">Şifre Değiştir</button>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
         <span>İki Faktörlü Doğrulama</span>
@@ -1597,14 +1751,6 @@ async function loadPerformance() {
       });
     } else { branchTb.innerHTML = emptyRow(4, 'Henüz şube verisi yok'); }
 
-    // Template performansı
-    const tmplTb = document.getElementById('perf-templates');
-    if (data.templatePerformance && data.templatePerformance.length > 0) {
-      tmplTb.innerHTML = '';
-      data.templatePerformance.forEach(t => {
-        tmplTb.innerHTML += '<tr><td>'+t.name+'</td><td>'+fmtMoney(t.denomination)+'</td><td>'+t.salesCount+'</td><td>'+fmtMoney(t.revenue)+'</td><td>%'+t.percentage+'</td></tr>';
-      });
-    } else { tmplTb.innerHTML = emptyRow(5, 'Henüz şablon satışı yok'); }
   } catch (err) { console.warn('Performans yüklenemedi:', err); }
 }
 
