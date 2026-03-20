@@ -340,6 +340,77 @@ redemptionRoutes.post('/confirm-by-code', async (req, res) => {
   }
 });
 
+// ── Recent redemptions (merchant panel — load on page open) ──
+redemptionRoutes.get('/recent', async (_req, res) => {
+  try {
+    const recent = await prisma.giftCardRedemption.findMany({
+      take: 10,
+      orderBy: { redeemedAt: 'desc' },
+      include: {
+        giftCard: { select: { code: true, amount: true, isVitaCert: true } },
+        branch: { select: { name: true } },
+      },
+    });
+
+    res.json(recent.map(r => ({
+      code: r.giftCard.code,
+      amount: r.giftCard.amount,
+      branch: r.branch?.name || '',
+      isVitaCert: r.giftCard.isVitaCert,
+      redeemedAt: r.redeemedAt,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+// ── Merchant panel — detailed settlements with commission info ──
+redemptionRoutes.get('/settlements', async (_req, res) => {
+  try {
+    const settlements = await prisma.settlement.findMany({
+      take: 50,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        merchant: { select: { name: true, commissionRate: true, settlementMethod: true } },
+      },
+    });
+
+    const totals = {
+      totalGross: 0,
+      totalCommission: 0,
+      totalNet: 0,
+      count: settlements.length,
+      pending: 0,
+      completed: 0,
+    };
+
+    const items = settlements.map(s => {
+      totals.totalGross += s.totalAmount;
+      totals.totalCommission += s.commissionAmount;
+      totals.totalNet += s.netAmount;
+      if (s.status === 'pending') totals.pending++;
+      else totals.completed++;
+
+      return {
+        id: s.id,
+        merchantName: s.merchant.name,
+        totalAmount: s.totalAmount,
+        commissionAmount: s.commissionAmount,
+        commissionRate: `${(s.commissionRate * 100).toFixed(1)}%`,
+        netAmount: s.netAmount,
+        method: s.method,
+        status: s.status,
+        createdAt: s.createdAt,
+      };
+    });
+
+    res.json({ totals, items });
+  } catch (err) {
+    console.error('Settlements error:', err);
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
 // T+1 Batch Settlement: Ödemeler artık anlık değil.
 // Akşam batch ile toplanır, ertesi gün admin panelden veya otomatik cron ile ödenir.
 // Bkz: src/routes/batchSettlement.ts

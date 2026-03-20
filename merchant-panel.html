@@ -2523,7 +2523,30 @@ document.addEventListener('DOMContentLoaded', () => {
       showSection(link.dataset.section);
     });
   });
+  // Son taramaları veritabanından yükle
+  loadRecentScans();
 });
+
+async function loadRecentScans() {
+  try {
+    const resp = await fetch('/api/redeem/recent');
+    const data = await resp.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const tbody = document.getElementById('scan-history');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      data.forEach(r => {
+        const time = new Date(r.redeemedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        const date = new Date(r.redeemedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const row = document.createElement('tr');
+        row.innerHTML = '<td>' + date + ' ' + time + '</td><td>' + r.code + '</td><td>₺' + Number(r.amount).toLocaleString('tr-TR') + '</td><td><span class="badge badge-success">Onaylandı</span></td>';
+        tbody.appendChild(row);
+      });
+    }
+  } catch (err) {
+    console.warn('Son taramalar yüklenemedi:', err);
+  }
+}
 
 // Close modals on outside click
 document.addEventListener('click', (e) => {
