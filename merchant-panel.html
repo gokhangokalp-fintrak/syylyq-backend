@@ -802,160 +802,32 @@
             <main class="content">
                 <!-- SECTION 1: PANO (DASHBOARD) -->
                 <div id="section-dashboard" class="section active">
-                    <!-- Row 1: Today Highlight -->
-                    <div class="card card-highlight">
-                        <div class="card-highlight-text">
-                            <div>
-                                <div style="text-align: left;">
-                                    <h3 style="font-size: 16px; margin-bottom: 16px;">Bugünkü Özet</h3>
-                                </div>
-                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
-                                    <div class="highlight-stat">
-                                        <span class="highlight-label">İşlem Sayısı</span>
-                                        <span class="highlight-value">12</span>
-                                    </div>
-                                    <div class="highlight-stat">
-                                        <span class="highlight-label">Toplam Gelir</span>
-                                        <span class="highlight-value">8,450₺</span>
-                                    </div>
-                                    <div class="highlight-stat">
-                                        <span class="highlight-label">QR Token Ödeme</span>
-                                        <span class="highlight-value">3</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Gelir Özeti (veritabanından) -->
+                    <div id="settlement-summary" style="margin-bottom: 16px;">
+                        <div class="grid-3">
+                            <div class="stat-card"><div class="stat-label">Toplam Brüt Gelir</div><div class="stat-value" style="color:var(--primary);">Yükleniyor...</div></div>
+                            <div class="stat-card"><div class="stat-label">Toplam Komisyon</div><div class="stat-value">—</div></div>
+                            <div class="stat-card"><div class="stat-label">Net Gelir</div><div class="stat-value">—</div></div>
                         </div>
                     </div>
 
-                    <!-- Row 2: Stat Cards (6 columns) -->
-                    <div class="grid-6">
-                        <div class="stat-card">
-                            <div class="stat-label">Satılan Kartlar</div>
-                            <div class="stat-value">456</div>
-                            <div class="stat-change">↑ %12</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Kullanılan Kartlar</div>
-                            <div class="stat-value">312</div>
-                            <div class="stat-change">↑ %8</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Aktif Kartlar</div>
-                            <div class="stat-value">144</div>
-                            <div class="stat-change">↑ %5</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Toplam Gelir</div>
-                            <div class="stat-value">245K₺</div>
-                            <div class="stat-change">↑ %18</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Komisyon Oranı</div>
-                            <div class="stat-value">%7</div>
-                            <div class="stat-change">17,150₺</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Bekleyen Bakiye</div>
-                            <div class="stat-value">32,400₺</div>
-                            <div class="stat-change negative">Ödenmedi</div>
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Charts (2 columns) -->
-                    <div class="grid-2">
-                        <div class="card">
-                            <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Haftalık Gelir</h4>
-                            <div class="chart-placeholder">
-                                [Haftalık Gelir Grafiği - Pazartesi-Pazar: 8,500₺ / 12,300₺ / 9,800₺ / 15,600₺ / 18,200₺ / 14,500₺ / 7,200₺]
-                            </div>
-                        </div>
-                        <div class="card">
-                            <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Kart Türlerine Göre Satış</h4>
-                            <div class="chart-placeholder">
-                                [Kart Türü Grafiği - 100₺: 125 / 250₺: 98 / 500₺: 154 / 1000₺: 79]
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 4: Last Transactions Table -->
+                    <!-- Son İşlemler (veritabanından) -->
                     <div class="card">
-                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Son İşlemler</h4>
+                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Son İşlemler — Gelir Detayı</h4>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Saat</th>
-                                    <th>Tür</th>
-                                    <th>Müşteri</th>
-                                    <th>Şube</th>
-                                    <th>Tutar</th>
+                                    <th>Tarih</th>
+                                    <th>İşletme</th>
+                                    <th>Brüt Tutar</th>
+                                    <th>Komisyon</th>
+                                    <th>Net Tutar</th>
+                                    <th>Ödeme Şekli</th>
                                     <th>Durum</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>14:35</td>
-                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
-                                    <td>Ahmet Kaya</td>
-                                    <td>Nişantaşı</td>
-                                    <td>250₺</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>13:52</td>
-                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
-                                    <td>Fatma Şahin</td>
-                                    <td>Kadıköy</td>
-                                    <td>450🪙 (67,50₺)</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>12:28</td>
-                                    <td><span class="badge badge-info">Kart Satış</span></td>
-                                    <td>Mehmet Yılmaz</td>
-                                    <td>Bağdat Caddesi</td>
-                                    <td>500₺</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>11:15</td>
-                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
-                                    <td>Selin Demir</td>
-                                    <td>Kızılay</td>
-                                    <td>100₺</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>10:42</td>
-                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
-                                    <td>Burak Çetin</td>
-                                    <td>Alsancak</td>
-                                    <td>300🪙 (45,00₺)</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>09:58</td>
-                                    <td><span class="badge badge-info">Kart Satış</span></td>
-                                    <td>Zeynep Aktar</td>
-                                    <td>Nişantaşı</td>
-                                    <td>1,000₺</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>08:34</td>
-                                    <td><span class="badge badge-info">Kart Kullanım</span></td>
-                                    <td>Can Öztürk</td>
-                                    <td>Kadıköy</td>
-                                    <td>250₺</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
-                                <tr>
-                                    <td>07:19</td>
-                                    <td><span class="badge badge-warning">Token Ödeme</span></td>
-                                    <td>Ayşe Yaman</td>
-                                    <td>Bağdat Caddesi</td>
-                                    <td>600🪙 (90,00₺)</td>
-                                    <td><span class="badge badge-success">Başarılı</span></td>
-                                </tr>
+                            <tbody id="settlement-table-body">
+                                <tr><td colspan="7" style="text-align:center; color:#9CA3AF; padding:20px;">Yükleniyor...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2547,6 +2419,60 @@ async function loadRecentScans() {
     console.warn('Son taramalar yüklenemedi:', err);
   }
 }
+
+// Gelir/işlem verilerini yükle
+async function loadSettlements() {
+  try {
+    const resp = await fetch('/api/redeem/settlements');
+    const data = await resp.json();
+    if (!data.totals) return;
+
+    const t = data.totals;
+
+    // Dashboard özet kartlarını güncelle (varsa)
+    const summaryEl = document.getElementById('settlement-summary');
+    if (summaryEl) {
+      summaryEl.innerHTML = '<div class="grid-3">' +
+        '<div class="stat-card"><div class="stat-label">Toplam Brüt Gelir</div><div class="stat-value">₺' + t.totalGross.toLocaleString('tr-TR') + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">Toplam Komisyon</div><div class="stat-value" style="color:#DC2626;">-₺' + t.totalCommission.toLocaleString('tr-TR') + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">Net Gelir</div><div class="stat-value" style="color:#16A34A;">₺' + t.totalNet.toLocaleString('tr-TR') + '</div></div>' +
+      '</div>' +
+      '<div class="grid-3" style="margin-top:12px;">' +
+        '<div class="stat-card"><div class="stat-label">Toplam İşlem</div><div class="stat-value">' + t.count + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">Bekleyen</div><div class="stat-value" style="color:#F59E0B;">' + t.pending + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">Tamamlanan</div><div class="stat-value" style="color:#16A34A;">' + t.completed + '</div></div>' +
+      '</div>';
+    }
+
+    // İşlem detay tablosunu doldur
+    const tbody = document.getElementById('settlement-table-body');
+    if (tbody && data.items && data.items.length > 0) {
+      tbody.innerHTML = '';
+      data.items.forEach(function(s) {
+        var date = new Date(s.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+        var time = new Date(s.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        var statusBadge = s.status === 'pending'
+          ? '<span class="badge badge-warning">Beklemede</span>'
+          : '<span class="badge badge-success">Tamamlandı</span>';
+        var methodLabel = s.method === 'havale' ? 'Havale' : s.method === 'iyzico' ? 'iyzico' : s.method;
+        var row = document.createElement('tr');
+        row.innerHTML = '<td>' + date + ' ' + time + '</td>' +
+          '<td>' + s.merchantName + '</td>' +
+          '<td style="font-weight:600;">₺' + s.totalAmount.toLocaleString('tr-TR') + '</td>' +
+          '<td style="color:#DC2626;">-₺' + s.commissionAmount.toLocaleString('tr-TR') + ' (' + s.commissionRate + ')</td>' +
+          '<td style="font-weight:700;color:#16A34A;">₺' + s.netAmount.toLocaleString('tr-TR') + '</td>' +
+          '<td>' + methodLabel + '</td>' +
+          '<td>' + statusBadge + '</td>';
+        tbody.appendChild(row);
+      });
+    }
+  } catch (err) {
+    console.warn('Gelir verileri yüklenemedi:', err);
+  }
+}
+
+// Sayfa yüklenince gelir verilerini de çek
+loadSettlements();
 
 // Close modals on outside click
 document.addEventListener('click', (e) => {
