@@ -1307,59 +1307,18 @@
                             <div id="verify-result" style="margin-top: 16px; display: none;"></div>
                         </div>
 
-                        <h5 style="margin-bottom: 12px; font-size: 13px; font-weight: 600;">Son 5 Tarama</h5>
+                        <h5 style="margin-bottom: 12px; font-size: 13px; font-weight: 600;">Son Taramalar</h5>
                         <table>
                             <thead>
                                 <tr>
                                     <th>Saat</th>
-                                    <th>Tür</th>
-                                    <th>Kod / Token</th>
-                                    <th>Müşteri</th>
+                                    <th>Kod</th>
                                     <th>Tutar</th>
                                     <th>Sonuç</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>14:35</td>
-                                    <td><span class="badge badge-info">Kart Taraması</span></td>
-                                    <td>SYY-2847-3921</td>
-                                    <td>Ahmet Kaya</td>
-                                    <td>250₺</td>
-                                    <td><span class="badge badge-success">Geçerli</span></td>
-                                </tr>
-                                <tr>
-                                    <td>13:52</td>
-                                    <td><span class="badge badge-warning">Token Taraması</span></td>
-                                    <td>TOK-5634-VITA</td>
-                                    <td>Fatma Şahin</td>
-                                    <td>450🪙</td>
-                                    <td><span class="badge badge-success">Geçerli</span></td>
-                                </tr>
-                                <tr>
-                                    <td>12:28</td>
-                                    <td><span class="badge badge-info">Kart Taraması</span></td>
-                                    <td>SYY-1928-5640</td>
-                                    <td>Mehmet Yılmaz</td>
-                                    <td>500₺</td>
-                                    <td><span class="badge badge-success">Geçerli</span></td>
-                                </tr>
-                                <tr>
-                                    <td>11:15</td>
-                                    <td><span class="badge badge-info">Kart Taraması</span></td>
-                                    <td>SYY-7840-2156</td>
-                                    <td>Selin Demir</td>
-                                    <td>100₺</td>
-                                    <td><span class="badge badge-success">Geçerli</span></td>
-                                </tr>
-                                <tr>
-                                    <td>10:42</td>
-                                    <td><span class="badge badge-warning">Token Taraması</span></td>
-                                    <td>TOK-3456-VITA</td>
-                                    <td>Burak Çetin</td>
-                                    <td>300🪙</td>
-                                    <td><span class="badge badge-success">Geçerli</span></td>
-                                </tr>
+                            <tbody id="scan-history">
+                                <tr><td colspan="4" style="text-align:center; color:#9CA3AF; padding:20px;">Henüz tarama yapılmadı</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2466,6 +2425,8 @@ async function confirmRedemption(code) {
           </table>
         </div>`;
       document.getElementById('manual-code-input').value = '';
+      // Tarama geçmişine ekle
+      addScanHistory(code, s.grossAmount, true);
     } else {
       resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ ${data.error || 'Onaylama hatası'}</div>`;
     }
@@ -2473,6 +2434,25 @@ async function confirmRedemption(code) {
     resultDiv.innerHTML = `<div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; padding:16px; color:#991B1B;">❌ Bağlantı hatası</div>`;
   }
 }
+function addScanHistory(code, amount, confirmed) {
+  const tbody = document.getElementById('scan-history');
+  if (!tbody) return;
+  // İlk satır "henüz tarama yapılmadı" ise sil
+  if (tbody.children.length === 1 && tbody.children[0].querySelector('td[colspan]')) {
+    tbody.innerHTML = '';
+  }
+  const now = new Date();
+  const time = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const badge = confirmed
+    ? '<span class="badge badge-success">Onaylandı</span>'
+    : '<span class="badge badge-info">Doğrulandı</span>';
+  const row = document.createElement('tr');
+  row.innerHTML = `<td>${time}</td><td>${code}</td><td>₺${Number(amount).toLocaleString('tr-TR')}</td><td>${badge}</td>`;
+  tbody.insertBefore(row, tbody.firstChild);
+  // Max 5 satır tut
+  while (tbody.children.length > 5) tbody.removeChild(tbody.lastChild);
+}
+
 function toggleBankEdit() {
   const form = document.getElementById('bank-edit-form');
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
