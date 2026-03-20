@@ -1,7 +1,27 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import bcrypt from 'bcryptjs';
 
 export const adminPublicRoutes = Router();
+
+// ── Admin: Şifre Sıfırlama ──
+adminPublicRoutes.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { phone, newPassword } = req.body;
+    if (!phone || !newPassword) {
+      return res.status(400).json({ error: 'phone ve newPassword gereklidir' });
+    }
+    const user = await prisma.user.findFirst({ where: { phone } });
+    if (!user) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+    const hash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: user.id }, data: { password: hash } });
+    res.json({ success: true, message: `${user.name} şifresi sıfırlandı` });
+  } catch (err) {
+    res.status(500).json({ error: 'Şifre sıfırlama başarısız' });
+  }
+});
 
 // ══════════════════════════════════════════════════════
 // PUBLIC READ-ONLY ADMIN ENDPOINTS (NO JWT AUTH)
