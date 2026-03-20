@@ -68,8 +68,8 @@ giftCardRoutes.post('/purchase', requireAuth, validate(purchaseGiftCardSchema), 
     } else if (directAmount) {
       // ── VITA Universal Certificate (evrensel hediye çeki — template yok) ──
       cardAmount = directAmount;
-      if (cardAmount < 1000 || cardAmount > 500000) {
-        return res.status(400).json({ error: 'Tutar 1.000 ile 500.000₸ arasında olmalıdır' });
+      if (cardAmount < 10 || cardAmount > 10000) {
+        return res.status(400).json({ error: 'Tutar ₺10 ile ₺10.000 arasında olmalıdır' });
       }
     } else {
       return res.status(400).json({ error: 'TemplateId veya tutarı belirtin' });
