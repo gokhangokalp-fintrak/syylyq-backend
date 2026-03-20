@@ -91,6 +91,35 @@ panelPublicRoutes.get('/performance', async (_req, res) => {
   }
 });
 
+// ── Redeemed Certificates (kullanılan sertifikalar) ──
+panelPublicRoutes.get('/cards/redeemed', async (_req, res) => {
+  try {
+    const redemptions = await prisma.giftCardRedemption.findMany({
+      orderBy: { redeemedAt: 'desc' },
+      take: 50,
+      include: {
+        giftCard: { select: { code: true, amount: true, status: true, isVitaCert: true } },
+        branch: { select: { name: true } },
+        settlement: { select: { netAmount: true, commissionAmount: true, status: true } },
+      },
+    });
+
+    res.json(redemptions.map(r => ({
+      code: r.giftCard.code,
+      amount: r.giftCard.amount,
+      branchName: r.branch?.name || '-',
+      netAmount: r.settlement?.netAmount || 0,
+      commission: r.settlement?.commissionAmount || 0,
+      settlementStatus: r.settlement?.status || 'pending',
+      isVitaCert: r.giftCard.isVitaCert,
+      redeemedAt: r.redeemedAt,
+    })));
+  } catch (err) {
+    console.error('Redeemed cards error:', err);
+    res.json([]);
+  }
+});
+
 // ── Gift Cards: Templates ──
 panelPublicRoutes.get('/cards/templates', async (_req, res) => {
   try {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kahve Dünyası - İşletme Paneli | VITA SuperApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -679,8 +680,8 @@
                 <ul class="nav-items">
                     <li class="nav-item">
                         <a class="nav-link" href="#cards" data-section="cards">
-                            <span class="nav-icon">🎁</span>
-                            <span>Hediye Kartları</span>
+                            <span class="nav-icon">🎫</span>
+                            <span>Sertifika İşlemleri</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -813,7 +814,10 @@
 
                     <!-- Son İşlemler (veritabanından) -->
                     <div class="card">
-                        <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Son İşlemler — Gelir Detayı</h4>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h4 style="font-size:14px;font-weight:600;margin:0;">Son İşlemler — Gelir Detayı</h4>
+                            <button class="btn btn-success" onclick="exportSettlementsToExcel()" style="font-size:13px;padding:8px 16px;">📥 Excel'e Aktar</button>
+                        </div>
                         <table>
                             <thead>
                                 <tr>
@@ -860,29 +864,32 @@
 
                 <!-- SECTION 3: HEDİYE KARTLARI (CARDS) -->
                 <div id="section-cards" class="section">
+                    <div style="padding:12px 16px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:4px;margin-bottom:16px;font-size:14px;">
+                        ℹ️ Bu sayfada işletmenizde kullanılan ve bekleyen VITA evrensel sertifikaları listelenmektedir.
+                    </div>
                     <div class="card">
                         <div class="tabs">
-                            <button class="tab active" data-tab="templates">Şablonlar</button>
-                            <button class="tab" data-tab="sales">Satışlar</button>
-                            <button class="tab" data-tab="active-cards">Aktif Kartlar</button>
+                            <button class="tab active" onclick="showTab(this,'cert-redeemed-tab')">Kullanılan</button>
+                            <button class="tab" onclick="showTab(this,'cert-active-tab')">Bekleyen / Aktif</button>
+                            <button class="tab" onclick="showTab(this,'cert-all-tab')">Tüm Sertifikalar</button>
                         </div>
 
-                        <!-- TAB: Şablonlar -->
-                        <div id="templates-tab" class="tab-content active">
-                            <table><thead><tr><th>Şablon Adı</th><th>Fiyat</th><th>Kategori</th><th>Satış Adedi</th><th>Durum</th></tr></thead>
-                            <tbody id="cards-templates-body"><tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
+                        <!-- TAB: Kullanılan Sertifikalar -->
+                        <div id="cert-redeemed-tab" class="tab-content" style="display:block;">
+                            <table><thead><tr><th>Kod</th><th>Tutar</th><th>Şube</th><th>Kullanım Tarihi</th><th>Durum</th></tr></thead>
+                            <tbody id="cert-redeemed-body"><tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
                         </div>
 
-                        <!-- TAB: Satışlar -->
-                        <div id="sales-tab" class="tab-content" style="display: none;">
-                            <table><thead><tr><th>Kart Kodu</th><th>Alıcı</th><th>Şablon</th><th>Tutar</th><th>Tarih</th><th>Durum</th></tr></thead>
-                            <tbody id="cards-sales-body"><tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
-                        </div>
-
-                        <!-- TAB: Aktif Kartlar -->
-                        <div id="active-cards-tab" class="tab-content" style="display: none;">
-                            <table><thead><tr><th>Kart Kodu</th><th>Sahibi</th><th>Tutar</th><th>Son Kullanma</th><th>Durum</th></tr></thead>
+                        <!-- TAB: Aktif Sertifikalar -->
+                        <div id="cert-active-tab" class="tab-content" style="display:none;">
+                            <table><thead><tr><th>Kod</th><th>Sahibi</th><th>Tutar</th><th>Son Kullanma</th><th>Durum</th></tr></thead>
                             <tbody id="cards-active-body"><tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
+                        </div>
+
+                        <!-- TAB: Tüm Sertifikalar -->
+                        <div id="cert-all-tab" class="tab-content" style="display:none;">
+                            <table><thead><tr><th>Kod</th><th>Alıcı</th><th>Tür</th><th>Tutar</th><th>Tarih</th><th>Durum</th></tr></thead>
+                            <tbody id="cards-sales-body"><tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -947,7 +954,10 @@
                         <div class="stat-card"><div class="stat-label">Güncel Bakiye</div><div class="stat-value" id="ledger-balance">-</div></div>
                     </div>
                     <div class="card">
-                        <h4 style="margin-bottom:16px;font-size:14px;font-weight:600;">Cari Hesap Dökümü</h4>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h4 style="font-size:14px;font-weight:600;margin:0;">Cari Hesap Dökümü</h4>
+                            <button class="btn btn-success" onclick="exportLedgerToExcel()" style="font-size:13px;padding:8px 16px;">📥 Excel'e Aktar</button>
+                        </div>
                         <table><thead><tr><th>Tarih</th><th>İşlem</th><th>Borç</th><th>Alacak</th><th>Bakiye</th><th>Açıklama</th></tr></thead>
                         <tbody id="ledger-body"><tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:20px;">Yükleniyor...</td></tr></tbody></table>
                     </div>
@@ -1375,7 +1385,7 @@
 
 <script>
 const pageTitles = {
-  dashboard:'Pano', performance:'Performans', cards:'Hediye Kartları',
+  dashboard:'Pano', performance:'Performans', cards:'Sertifika İşlemleri',
   'token-payments':'Token Ödemeleri', 'qr-scanner':'QR Tarama',
   ledger:'Cari Hesap', batch:'Toplu Ödemeler', bank:'Banka Bilgileri',
   'nearby-profile':'NearbyMe Profil', campaigns:'Kampanyalar',
@@ -1618,32 +1628,33 @@ async function loadPerformance() {
   } catch (err) { console.warn('Performans yüklenemedi:', err); }
 }
 
-// ── Cards ──
+// ── Sertifika İşlemleri ──
 async function loadCards() {
   try {
-    // Templates
-    const tResp = await fetch('/api/panel/cards/templates');
-    const templates = await tResp.json();
-    const tBody = document.getElementById('cards-templates-body');
-    if (templates.length > 0) {
-      tBody.innerHTML = '';
-      templates.forEach(t => {
-        tBody.innerHTML += '<tr><td>'+t.name+'</td><td>'+fmtMoney(t.denomination)+'</td><td>'+t.category+'</td><td>'+t.salesCount+'</td><td>'+statusBadge(t.isActive?'active':'cancelled')+'</td></tr>';
+    // Kullanılan sertifikalar
+    const rResp = await fetch('/api/panel/cards/redeemed');
+    const redeemed = await rResp.json();
+    const rBody = document.getElementById('cert-redeemed-body');
+    if (redeemed.length > 0) {
+      rBody.innerHTML = '';
+      redeemed.forEach(r => {
+        rBody.innerHTML += '<tr><td>'+r.code+'</td><td>'+fmtMoney(r.amount)+'</td><td>'+r.branchName+'</td><td>'+fmtDateTime(r.redeemedAt)+'</td><td>'+statusBadge(r.settlementStatus)+'</td></tr>';
       });
-    } else { tBody.innerHTML = emptyRow(5, 'Henüz şablon yok'); }
+    } else { rBody.innerHTML = emptyRow(5, 'Henüz kullanılan sertifika yok'); }
 
-    // Sales
+    // Tüm sertifikalar
     const sResp = await fetch('/api/panel/cards/sales');
     const sales = await sResp.json();
     const sBody = document.getElementById('cards-sales-body');
     if (sales.length > 0) {
       sBody.innerHTML = '';
       sales.forEach(c => {
-        sBody.innerHTML += '<tr><td>'+c.code+'</td><td>'+c.buyerName+'</td><td>'+c.templateName+'</td><td>'+fmtMoney(c.amount)+'</td><td>'+fmtDate(c.createdAt)+'</td><td>'+statusBadge(c.status)+'</td></tr>';
+        const certType = c.isVitaCert ? 'VITA Evrensel' : c.templateName;
+        sBody.innerHTML += '<tr><td>'+c.code+'</td><td>'+c.buyerName+'</td><td>'+certType+'</td><td>'+fmtMoney(c.amount)+'</td><td>'+fmtDate(c.createdAt)+'</td><td>'+statusBadge(c.status)+'</td></tr>';
       });
-    } else { sBody.innerHTML = emptyRow(6, 'Henüz satış yok'); }
+    } else { sBody.innerHTML = emptyRow(6, 'Henüz sertifika yok'); }
 
-    // Active Cards
+    // Aktif / Bekleyen sertifikalar
     const aResp = await fetch('/api/panel/cards/active');
     const active = await aResp.json();
     const aBody = document.getElementById('cards-active-body');
@@ -1652,8 +1663,8 @@ async function loadCards() {
       active.forEach(c => {
         aBody.innerHTML += '<tr><td>'+c.code+'</td><td>'+c.ownerName+'</td><td>'+fmtMoney(c.amount)+'</td><td>'+fmtDate(c.expiresAt)+'</td><td>'+statusBadge(c.status)+'</td></tr>';
       });
-    } else { aBody.innerHTML = emptyRow(5, 'Aktif kart yok'); }
-  } catch (err) { console.warn('Kart verileri yüklenemedi:', err); }
+    } else { aBody.innerHTML = emptyRow(5, 'Bekleyen sertifika yok'); }
+  } catch (err) { console.warn('Sertifika verileri yüklenemedi:', err); }
 }
 
 // ── Token Payments ──
@@ -1861,6 +1872,59 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNearbyProfile();
   loadSettings();
 });
+
+// ═══════════════════════════════════════
+// Excel Export
+// ═══════════════════════════════════════
+function exportLedgerToExcel() {
+  const rows = [['Tarih', 'İşlem Türü', 'Borç (₺)', 'Alacak (₺)', 'Bakiye (₺)', 'Açıklama']];
+  const tbody = document.getElementById('ledger-body');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length >= 6) {
+      rows.push(Array.from(cells).map(td => td.textContent.trim().replace('₺','').replace(/\s+/g,' ')));
+    }
+  });
+  if (rows.length <= 1) { alert('Dışa aktarılacak veri yok'); return; }
+
+  // Özet satırları
+  const debit = document.getElementById('ledger-debit')?.textContent || '';
+  const credit = document.getElementById('ledger-credit')?.textContent || '';
+  const balance = document.getElementById('ledger-balance')?.textContent || '';
+  rows.push([]);
+  rows.push(['TOPLAM', '', debit, credit, balance, '']);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  // Sütun genişlikleri
+  ws['!cols'] = [{wch:18},{wch:20},{wch:15},{wch:15},{wch:15},{wch:35}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Cari Hesap');
+
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, 'VITA_Cari_Hesap_' + today + '.xlsx');
+}
+
+function exportSettlementsToExcel() {
+  const rows = [['Tarih', 'İşletme', 'Brüt Tutar (₺)', 'Komisyon (₺)', 'Net Tutar (₺)', 'Yöntem', 'Durum']];
+  const tbody = document.getElementById('settlement-table-body');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length >= 7) {
+      rows.push(Array.from(cells).map(td => td.textContent.trim().replace('₺','').replace(/\s+/g,' ')));
+    }
+  });
+  if (rows.length <= 1) { alert('Dışa aktarılacak veri yok'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:20},{wch:20},{wch:15},{wch:20},{wch:15},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws, 'İşlemler');
+
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, 'VITA_Islemler_' + today + '.xlsx');
+}
 
 // Close modals on outside click
 document.addEventListener('click', (e) => {
