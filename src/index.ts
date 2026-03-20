@@ -28,6 +28,7 @@ import { connectionRoutes } from './routes/connections';
 import { groupRoutes } from './routes/groups';
 import { nearbyRoutes } from './routes/nearby';
 import { jobsRoutes } from './routes/jobs';
+import { panelPublicRoutes } from './routes/panelPublic';
 import { startNotificationJobs } from './jobs/notificationJobs';
 import { requestLogger, logger } from './utils/logger';
 
@@ -89,6 +90,9 @@ app.use('/api/settlements', adminLimiter, settlementRoutes);
 
 // ── Batch Settlement Routes (admin — daily batch payments) ──
 app.use('/api/batch-settlements', adminLimiter, batchSettlementRoutes);
+
+// ── Public Panel Data (merchant panel HTML — no auth) ──
+app.use('/api/panel', generalLimiter, panelPublicRoutes);
 
 // ── Health check ──
 app.get('/api/health', (_req, res) => {
