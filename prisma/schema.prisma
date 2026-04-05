@@ -78,6 +78,7 @@ model User {
   jobApplications  JobApplication[]  @relation("JobApplications")
   jobRatingsGiven  JobRating[]       @relation("JobRatingsGiven")
   jobRatingsReceived JobRating[]     @relation("JobRatingsReceived")
+  dealPurchases    DealPurchase[]
 
   @@index([phone])
   @@index([isActive])
@@ -143,6 +144,7 @@ model Merchant {
   mysteryTasks  MysteryTask[]
   batchSettlements BatchSettlement[]
   ledgerEntries    LedgerEntry[]
+  deals            Deal[]
 }
 
 // Merchant panel users (employees/owners)
@@ -713,4 +715,112 @@ model JobRating {
   score     Int
   comment   String?
   createdAt DateTime @default(now())
+}
+
+// ══════════════════════════════════════════════════════
+// DEALS — Toplu İndirimler (Group Buying / Coupon System)
+// İşletme fırsat oluşturur, yeterli katılımda aktif olur
+// Kullanıcı nakit, token veya hibrit ödeme yapar → QR kupon alır
+// ══════════════════════════════════════════════════════
+
+model Deal {
+  id               String   @id @default(uuid())
+  merchantId       String
+  title            String   // "10'lu Kahve Paketi"
+  description      String?
+  category         String   // food | drink | beauty | health | entertainment | shopping | service
+  imageUrl         String?
+  images           String?  // JSON array of image URLs
+
+  // Pricing
+  originalPrice    Int      // Orijinal fiyat (TL kuruş)
+  discountedPrice  Int      // İndirimli fiyat
+  discountRate     Float    // 0.30 = %30
+
+  // Group threshold
+  minParticipants  Int      @default(1)   // Minimum katılımcı
+  maxParticipants  Int?     // Maksimum katılımcı (null = sınırsız)
+  currentCount     Int      @default(0)   // Şu anki katılımcı
+  isActivated      Boolean  @default(false) // Eşik aşıldığında true
+
+  // Purchase limits
+  maxPerUser       Int      @default(1)   // Kişi başına maks satın alma
+  totalUsages      Int      @default(1)   // Her satın almada kaç kullanım hakkı
+
+  // Token settings
+  acceptToken      Boolean  @default(true)  // Token kabul ediyor mu
+  hybridAllowed    Boolean  @default(true)  // Hibrit ödeme
+  tokenPrice       Int?     // Token ile fiyat (null = TL fiyatla aynı)
+
+  // Location
+  latitude         Float?
+  longitude        Float?
+  address          String?
+  cityId           String?
+
+  // Timing
+  startDate        DateTime @default(now())
+  endDate          DateTime
+  isActive         Boolean  @default(true)
+
+  // Stats
+  viewCount        Int      @default(0)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  merchant     Merchant       @relation(fields: [merchantId], references: [id])
+  purchases    DealPurchase[]
+
+  @@index([merchantId])
+  @@index([category])
+  @@index([isActive, endDate])
+  @@index([cityId])
+}
+
+model DealPurchase {
+  id              String   @id @default(uuid())
+  dealId          String
+  userId          String
+
+  // Payment
+  paidAmount      Int      // Ödenen TL tutarı
+  paidTokens      Int      @default(0) // Ödenen token
+  paymentMethod   String   // cash | token | hybrid
+
+  // QR Coupon
+  qrCode          String   @unique // Unique QR kodu
+  qrData          String   // HMAC imzalı QR payload
+
+  // Usage tracking
+  totalUsages     Int      @default(1) // Toplam kullanım hakkı (ör. 10'lu paket = 10)
+  usedCount       Int      @default(0) // Kullanılan
+
+  // Status
+  status          String   @default("active") // active | used | expired | refunded
+
+  // Merchant validation
+  lastUsedAt      DateTime?
+  verifiedBy      String?  // İşletme çalışanı
+
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+
+  deal    Deal @relation(fields: [dealId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
+  usages  DealUsage[]
+
+  @@index([userId])
+  @@index([dealId])
+  @@index([status])
+  @@index([qrCode])
+}
+
+model DealUsage {
+  id              String   @id @default(uuid())
+  purchaseId      String
+  verifiedBy      String?
+  usedAt          DateTime @default(now())
+
+  purchase DealPurchase @relation(fields: [purchaseId], references: [id])
 }

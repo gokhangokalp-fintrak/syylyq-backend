@@ -28,6 +28,7 @@ import { connectionRoutes } from './routes/connections';
 import { groupRoutes } from './routes/groups';
 import { nearbyRoutes } from './routes/nearby';
 import { jobsRoutes } from './routes/jobs';
+import { dealsRoutes } from './routes/deals';
 import { panelPublicRoutes } from './routes/panelPublic';
 import { adminPublicRoutes } from './routes/adminPublic';
 import { startNotificationJobs } from './jobs/notificationJobs';
@@ -76,6 +77,7 @@ app.use('/api/connections', generalLimiter, connectionRoutes);
 app.use('/api/groups', generalLimiter, groupRoutes);
 app.use('/api/nearby', generalLimiter, nearbyRoutes);
 app.use('/api/jobs', generalLimiter, jobsRoutes);
+app.use('/api/deals', paymentLimiter, dealsRoutes);
 
 // ── Payment Routes (iyzico) ──
 app.use('/api/payment', paymentLimiter, iyzicoRoutes);
